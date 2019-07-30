@@ -23,24 +23,30 @@ using System.Collections.Concurrent;
 namespace AutoFilterDataGrid
 {
     /// <summary>
-    /// Interaction logic for NewDataGrid.xaml
+    /// Interaction logic for AutoFilterDataGrid.xaml
     /// </summary>
-    public partial class NewDataGrid : DataGrid, INotifyPropertyChanged
+    public partial class AutoFilterDataGrid : DataGrid, INotifyPropertyChanged
     {
         //public static Style DefaultHeaderStyle = new Func<Style>(() =>
         //{
-        //   Style tempStyle = new Style(typeof(DataGridColumnHeader));
-        //    tempStyle.Setters.Add
+        //    Style ColumnHeaderGripperStyle = new Style(typeof(Thumb));
+        //    ColumnHeaderGripperStyle.Setters.Add(new Setter(Thumb.WidthProperty, 8));
+        //    ColumnHeaderGripperStyle.Setters.Add(new Setter(Thumb.BackgroundProperty, Brushes.Transparent));
+        //    ColumnHeaderGripperStyle.Setters.Add(new Setter(Thumb.CursorProperty, CursorType.SizeWE));
+        //    ControlTemplate GripperTemplate = new ControlTemplate(typeof(Thumb));
+        //    GripperTemplate.VisualTree.
+        //    Style tempStyle = new Style(typeof(DataGridColumnHeader));
+        //    tempStyle.Setters.Add(new EventSetter());
         //    return tempStyle;
         //}).Invoke();
         private List<FilterValue> filterList;
         readonly ObservableCollection<CheckBox> filterPopupContent;
-        //public static readonly DependencyProperty ColumnHeaderStyleProperty = DependencyProperty.Register(
-          //  "ColumnHeaderStyle",
-           // typeof(Style),
-           // typeof(NewDataGrid),
-           // new FrameworkPropertyMetadata(new Style(, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender)
-           // );
+        public new static readonly DependencyProperty ColumnHeaderStyleProperty = DependencyProperty.Register(
+            "ColumnHeaderStyle",
+            typeof(Style),
+            typeof(AutoFilterDataGrid),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender)
+            );
         public event PropertyChangedEventHandler PropertyChanged;
         public new event DataGridSortingEventHandler Sorting;
         public ObservableCollection<CheckBox> FilterPopupContent
@@ -61,7 +67,7 @@ namespace AutoFilterDataGrid
         //        throw new InvalidOperationException();
         //    }
         //}
-        public NewDataGrid()
+        public AutoFilterDataGrid()
         {
             filterPopupContent = new ObservableCollection<CheckBox>();
             CheckBox tempCheck = new CheckBox
@@ -358,7 +364,25 @@ namespace AutoFilterDataGrid
         {
             Sorting?.Invoke(this, eventArgs);
         }
-        
+        //protected override void OnAutoGeneratingColumn(DataGridAutoGeneratingColumnEventArgs e)
+        //{
+        //    base.OnAutoGeneratingColumn(e);
+        //    ResourceDictionary resourceDictionary = new ResourceDictionary();
+        //    EventSetter setter = new EventSetter(System.Windows.Controls.Primitives.DataGridColumnHeader.LoadedEvent, new RoutedEventHandler(DataGridColumnHeaderLoaded));
+        //    e.Column.HeaderStyle.Setters.Add(setter);
+        //    e.Column.HeaderStyle = this.ColumnHeaderStyle;
+        //}
+        private void DataGridColumnHeaderLoaded(object sender, RoutedEventArgs e)
+        {
+            DataGridColumnHeader thisColumn = (DataGridColumnHeader)sender;
+            thisColumn.Style.Setters.Add(new EventSetter(System.Windows.Controls.Primitives.DataGridColumnHeader.ClickEvent, new RoutedEventHandler(DataGridColumnHeader_Click)));
+            thisColumn.Style.Setters.Add(new EventSetter(System.Windows.Controls.Primitives.DataGridColumnHeader.MouseDoubleClickEvent, new MouseButtonEventHandler(DataGridColumnHeader_MouseDoubleClick)));
+        }
+
+        private void FilterButton_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
     public class ICollectionViewFromIListConverter : IValueConverter
     {

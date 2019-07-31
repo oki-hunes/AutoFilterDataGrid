@@ -15,8 +15,8 @@
     <RepositoryUrl>https://github.com/jbruflodt/AutoFilterDataGrid.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyVersion>1.0.19212.1417</AssemblyVersion>
-    <FileVersion>1.0.19212.1417</FileVersion>
+    <AssemblyVersion>1.0.19212.1650</AssemblyVersion>
+    <FileVersion>1.0.19212.1650</FileVersion>
     <Version>$(AssemblyVersion)</Version>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
@@ -61,30 +61,13 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="AutoFilterDataGrid.xaml">
+    <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="FilteredObject13400_128x128.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="AutoFilterColumnHeader.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
-    <None Update="AutoFilterColumnHeaderPesenter.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
-    <None Update="Resources.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
   </ItemGroup>
   <Target Name="PushNuGet" AfterTargets="Pack" Condition="'$(Configuration)'=='Release_Package'">
     <Exec Command="nuget push &quot;$(OutputPath)$(PackageId).$(PackageVersion).nupkg&quot; -Source &quot;https://api.nuget.org/v3/index.json&quot;&#xD;&#xA;" />

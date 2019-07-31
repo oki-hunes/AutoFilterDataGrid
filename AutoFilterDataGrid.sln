@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28307.757
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoFilterDataGridTest", "AutoFilterDataGridTest\AutoFilterDataGridTest.csproj", "{6F915155-2DAF-4907-8CAB-0B2BCD6021A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfCustomControlLibrary5", "WpfCustomControlLibrary5\WpfCustomControlLibrary5.csproj", "{FC0819D9-17CA-42AA-83B9-AA21E07790B3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoFilterDataGrid", "AutoFilterDataGrid\AutoFilterDataGrid.csproj", "{FC0819D9-17CA-42AA-83B9-AA21E07790B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

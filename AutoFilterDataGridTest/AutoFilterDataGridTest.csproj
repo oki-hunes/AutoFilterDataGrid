@@ -101,9 +101,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WpfCustomControlLibrary5\WpfCustomControlLibrary5.csproj">
+    <ProjectReference Include="..\AutoFilterDataGrid\AutoFilterDataGrid.csproj">
       <Project>{fc0819d9-17ca-42aa-83b9-aa21e07790b3}</Project>
-      <Name>WpfCustomControlLibrary5</Name>
+      <Name>AutoFilterDataGrid</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

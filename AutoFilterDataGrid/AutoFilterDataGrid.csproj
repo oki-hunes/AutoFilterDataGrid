@@ -15,8 +15,8 @@
     <RepositoryUrl>https://github.com/jbruflodt/AutoFilterDataGrid.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyVersion>1.0.19211.1548</AssemblyVersion>
-    <FileVersion>1.0.19211.1548</FileVersion>
+    <AssemblyVersion>1.0.19212.1417</AssemblyVersion>
+    <FileVersion>1.0.19212.1417</FileVersion>
     <Version>$(AssemblyVersion)</Version>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
@@ -44,14 +44,6 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="FilteredObject13400_128x128.png" />
-    <None Remove="NewDataGrid.xaml" />
-    <None Remove="Resources.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="FilteredObject13400_128x128.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="PresentationFramework.Aero" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -69,15 +61,16 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="AutoFilterDataGrid.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="Resources.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="FilteredObject13400_128x128.png" />
@@ -86,10 +79,10 @@
     <None Update="AutoFilterColumnHeader.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
-    <None Update="AutoFilterDataGrid.xaml">
+    <None Update="AutoFilterColumnHeaderPesenter.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
-    <None Update="UserControl1.xaml">
+    <None Update="Resources.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
   </ItemGroup>

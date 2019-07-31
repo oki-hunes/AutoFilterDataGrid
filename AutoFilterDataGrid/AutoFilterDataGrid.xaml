@@ -7,6 +7,20 @@
              xmlns:local="clr-namespace:AutoFilterDataGrid"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" RowHeaderWidth="{DynamicResource {x:Static SystemParameters.MenuCheckmarkWidthKey}}">
+    <DataGrid.Resources>
+        <Style x:Key="DataGridColumnHeadersPresenterStyle1" TargetType="{x:Type DataGridColumnHeadersPresenter}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridColumnHeadersPresenter}">
+                        <Grid>
+                            <DataGridColumnHeader x:Name="PART_FillerColumnHeader" IsHitTestVisible="False"/>
+                            <ItemsPresenter/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </DataGrid.Resources>
     <DataGrid.Template>
         <ControlTemplate TargetType="{x:Type DataGrid}">
             <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
@@ -33,7 +47,7 @@
                                         </Binding>
                                     </Button.Visibility>
                                 </Button>
-                                <DataGridColumnHeadersPresenter x:Name="PART_ColumnHeadersPresenter" Grid.Column="1">
+                                <DataGridColumnHeadersPresenter x:Name="PART_ColumnHeadersPresenter" Grid.Column="1" Style="{DynamicResource DataGridColumnHeadersPresenterStyle1}">
                                     <DataGridColumnHeadersPresenter.Visibility>
                                         <Binding Path="HeadersVisibility" RelativeSource="{RelativeSource FindAncestor, AncestorLevel=1, AncestorType={x:Type DataGrid}}">
                                             <Binding.ConverterParameter>

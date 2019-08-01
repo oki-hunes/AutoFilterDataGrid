@@ -168,7 +168,15 @@ namespace BetterDataGrid
             bool filtered = false;
             foreach (FilterValue thisFilter in filterList)
             {
-                string testObjectValue = testObject.GetType().GetProperty(thisFilter.PropertyName).GetMethod.Invoke(testObject, new object[] { }).ToString();
+                string testObjectValue = "";
+                if (testObject.GetType() == typeof(DataRow) || testObject.GetType().IsSubclassOf(typeof(DataRow)))
+                {
+                    testObjectValue = ((DataRow)testObject).Field<object>(thisFilter.PropertyName).ToString();
+                }
+                else
+                {
+                    testObjectValue = testObject.GetType().GetProperty(thisFilter.PropertyName).GetMethod.Invoke(testObject, new object[] { }).ToString();
+                }
                 foreach (string filterValue in thisFilter.FilteredValues)
                 {
                     if (filterValue == testObjectValue)
@@ -246,7 +254,15 @@ namespace BetterDataGrid
                 {
                     if (item.GetType().ToString() != "MS.Internal.NamedObject")
                     {
-                        string thisValue = itemsType.GetProperty(propertyPath.Path).GetMethod.Invoke(item, new object[] { }).ToString();
+                        string thisValue = "";
+                        if (itemsType == typeof(DataRow) || itemsType.IsSubclassOf(typeof(DataRow)))
+                        {
+                            thisValue = ((DataRow)item).Field<object>(propertyPath.Path).ToString();
+                        }
+                        else
+                        {
+                            thisValue = itemsType.GetProperty(propertyPath.Path).GetMethod.Invoke(item, new object[] { }).ToString();
+                        }
                         if (!columnValues.Contains(thisValue))
                             columnValues.Add(thisValue);
                     }

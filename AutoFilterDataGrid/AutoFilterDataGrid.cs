@@ -23,6 +23,11 @@ namespace BetterDataGrid
 {
     public class AutoFilterDataGrid : DataGrid, INotifyPropertyChanged
     {
+        static AutoFilterDataGrid()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(AutoFilterDataGrid), new
+            FrameworkPropertyMetadata(typeof(AutoFilterDataGrid)));
+        }
         public static readonly DependencyProperty FilterPopupContentProperty = DependencyProperty.Register(
             "FilterPopupContent",
             typeof(ObservableCollection<CheckBox>),
@@ -57,8 +62,6 @@ namespace BetterDataGrid
 
         public AutoFilterDataGrid() : base()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(AutoFilterDataGrid), new
-            FrameworkPropertyMetadata(typeof(AutoFilterDataGrid)));
             CheckBox tempCheck = new CheckBox
             {
                 Content = "All",

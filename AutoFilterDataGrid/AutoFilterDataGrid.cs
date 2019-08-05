@@ -169,7 +169,11 @@ namespace BetterDataGrid
             foreach (FilterValue thisFilter in filterList)
             {
                 string testObjectValue = "";
-                if (testObject.GetType() == typeof(DataRowView) || testObject.GetType().IsSubclassOf(typeof(DataRowView)))
+                if (testObject.GetType() == typeof(DataRow) || testObject.GetType().IsSubclassOf(typeof(DataRow)))
+                {
+                    testObjectValue = ((DataRow)testObject).Field<object>(thisFilter.PropertyName).ToString();
+                }
+                else if (testObject.GetType() == typeof(DataRowView) || testObject.GetType().IsSubclassOf(typeof(DataRowView)))
                 {
                     testObjectValue = ((DataRowView)testObject).Row.Field<object>(thisFilter.PropertyName).ToString();
                 }
@@ -255,7 +259,11 @@ namespace BetterDataGrid
                     if (item.GetType().ToString() != "MS.Internal.NamedObject")
                     {
                         string thisValue = "";
-                        if (itemsType == typeof(DataRowView) || itemsType.IsSubclassOf(typeof(DataRowView)))
+                        if (itemsType == typeof(DataRow) || itemsType.IsSubclassOf(typeof(DataRow)))
+                        {
+                            thisValue = ((DataRow)item).Field<object>(propertyPath.Path).ToString();
+                        }
+                        else if (itemsType == typeof(DataRowView) || itemsType.IsSubclassOf(typeof(DataRowView)))
                         {
                             thisValue = ((DataRowView)item).Row.Field<object>(propertyPath.Path).ToString();
                         }

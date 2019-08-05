@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Data;
 using System.Windows.Controls.Primitives;
+using System.Collections;
 
 
 
@@ -34,8 +35,20 @@ namespace BetterDataGrid
             typeof(AutoFilterDataGrid),
             new FrameworkPropertyMetadata(new ObservableCollection<CheckBox>(), FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender)
             );
+        public static readonly DependencyProperty CanUserFilterDataProperty = DependencyProperty.Register(
+            "CanUserFilterData",
+            typeof(bool),
+            typeof(AutoFilterDataGrid),
+            new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender)
+            );
+        public new static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register(
+            "ItemsSource",
+            typeof(IList),
+            typeof(AutoFilterDataGrid),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender, OnItemsSourcePropertyChanged)
+            );
         private List<FilterValue> filterList;
-
+        private DataGridColumnHeader openFilterColumn;
         public event PropertyChangedEventHandler PropertyChanged;
         public new event DataGridSortingEventHandler Sorting;
 
@@ -44,6 +57,19 @@ namespace BetterDataGrid
             get
             {
                 return (ObservableCollection<CheckBox>)GetValue(FilterPopupContentProperty);
+            }
+        }
+        [Category("Columns")]
+        public bool CanUserFilterData
+        {
+            get
+            {
+                return (bool)GetValue(CanUserFilterDataProperty);
+            }
+            set
+            {
+                SetValue(CanUserFilterDataProperty, value);
+                this.Items.Filter = value ? new Predicate<object>(this.Contains) : null;
             }
         }
 
@@ -59,6 +85,17 @@ namespace BetterDataGrid
                 NotifyPropertyChanged("FilterList");
             }
         }
+        public new IList ItemsSource
+        {
+            get
+            {
+                return (IList)GetValue(ItemsSourceProperty);
+            }
+            set
+            {
+                SetValue(ItemsSourceProperty, value);
+            }
+        }
 
         public AutoFilterDataGrid() : base()
         {
@@ -72,7 +109,47 @@ namespace BetterDataGrid
             FilterPopupContent.Add(tempCheck);
             filterList = new List<FilterValue>();
             this.Loaded += AutoFilterDataGridLoaded;
-            this.Items.Filter = new Predicate<object>(this.Contains);
+        }
+        private static void OnItemsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue != null)
+            {
+                CollectionView tempView = new ListCollectionView(Array.Empty<string>());
+                if (e.NewValue is CollectionView || typeof(CollectionView).IsAssignableFrom(e.NewValue.GetType()))
+                {
+                    tempView = e.NewValue as CollectionView;
+                    if (!tempView.CanFilter && (bool)d.GetValue(CanUserFilterDataProperty))
+                    {
+                        d.SetValue(e.Property, e.OldValue);
+                        throw new NotSupportedException("The ItemsSource must have CanFilter equal to true when CanUserFilterData is also true.");
+                    }
+                    else
+                    {
+                        d.SetValue(ItemsControl.ItemsSourceProperty, tempView);
+                        d.GetType().GetMethod("SetFilter", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(d, new object[] { });
+                    }
+                }
+                else
+                {
+                    tempView = new ListCollectionView((IList)e.NewValue);
+                    if (!tempView.CanFilter && (bool)d.GetValue(CanUserFilterDataProperty))
+                    {
+                        d.SetValue(e.Property, e.OldValue);
+                        throw new NotSupportedException("The ItemsSource must have CanFilter equal to true after being converted to a ListCollectionView when CanUserFilterData is also true.");
+                    }
+                    else
+                    {
+                        d.SetValue(ItemsControl.ItemsSourceProperty, tempView);
+                        d.GetType().GetMethod("SetFilter", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(d, new object[] { });
+                    }
+                }
+            }
+            else
+                throw new ArgumentNullException("value");
+        }
+        internal void SetFilter()
+        {
+            this.Items.Filter = CanUserFilterData ? new Predicate<object>(this.Contains) : null;
         }
         private void UpdateEventHandlers()
         {
@@ -204,6 +281,8 @@ namespace BetterDataGrid
             {
                 UpdateEventHandlers();
             }
+            if (CanUserFilterData)
+                this.Items.Filter = new Predicate<object>(this.Contains);
         }
         private void GenerateFilterList()
         {
@@ -217,25 +296,27 @@ namespace BetterDataGrid
         {
             Popup filterPopup = (Popup)sender;
             int columnIndex = ((DataGridColumnHeader)filterPopup.TemplatedParent).DisplayIndex;
-            FilterValue thisColumnFilter = new FilterValue();
-            foreach (FilterValue thisFilter in filterList)
+            FilterValue thisColumnFilter = filterList.Find((thisFilter) =>
             {
-                if (thisFilter.PropertyName == ((Binding)((DataGridBoundColumn)this.Columns[columnIndex]).Binding).Path.Path.ToString())
-                    thisColumnFilter = thisFilter;
-            }
+                if (thisFilter != null && thisFilter.PropertyName == ((Binding)((DataGridBoundColumn)this.Columns[columnIndex]).Binding).Path.Path.ToString())
+                    return true;
+                else
+                    return false;
+            });
             thisColumnFilter.FilteredValues = new List<string>();
             for (int x = 1; x < FilterPopupContent.Count; x++)
             {
                 CheckBox tempCheck = FilterPopupContent[x];
                 if (!tempCheck.IsChecked.HasValue || !tempCheck.IsChecked.Value)
                     thisColumnFilter.FilteredValues.Add(tempCheck.Content.ToString());
-
             }
-            this.Items.Filter = new Predicate<object>(this.Contains);
+            if (CanUserFilterData)
+                this.Items.Filter = new Predicate<object>(this.Contains);
         }
 
         internal void FilterButton_Click(object sender, RoutedEventArgs e)
         {
+            //TODO rewrite to use the listview directly instead of the property to see if that fixes the disappearing all button
             Button filterButton = (Button)sender;
             int columnIndex = ((DataGridColumnHeader)filterButton.TemplatedParent).DisplayIndex;
             FilterValue thisColumnFilter = new FilterValue();
@@ -254,7 +335,7 @@ namespace BetterDataGrid
             {
                 PropertyPath propertyPath = ((Binding)((DataGridBoundColumn)this.Columns[columnIndex]).Binding).Path;
                 Type itemsType = this.Items[0].GetType();
-                foreach (object item in this.Items.SourceCollection)
+                foreach (object item in this.ItemsSource != null ? this.ItemsSource : this.Items)
                 {
                     if (item.GetType().ToString() != "MS.Internal.NamedObject")
                     {

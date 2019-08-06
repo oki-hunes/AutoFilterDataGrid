@@ -510,7 +510,7 @@ namespace BetterDataGrid
             Sorting?.Invoke(this, eventArgs);
         }
     }
-    public class FilterButtonVisibilityConverter : IMultiValueConverter
+    internal class FilterButtonVisibilityConverter : IMultiValueConverter
     {
         public virtual object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {

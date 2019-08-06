@@ -5,6 +5,35 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero">
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    <local:FilterButtonVisibilityConverter x:Key="FilterButtonVisibilityConverter"/>
+    <Style x:Key="FillerColumnHeader" TargetType="{x:Type DataGridColumnHeader}">
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
+                    <Grid>
+                        <Themes:DataGridHeaderBorder BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" IsClickable="{TemplateBinding CanUserSort}" IsPressed="{TemplateBinding IsPressed}" IsHovered="{TemplateBinding IsMouseOver}" Padding="{TemplateBinding Padding}" SortDirection="{TemplateBinding SortDirection}" SeparatorBrush="{TemplateBinding SeparatorBrush}" SeparatorVisibility="{TemplateBinding SeparatorVisibility}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Themes:DataGridHeaderBorder>
+                        <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                        <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="ColumnHeaderPesenterStyle" TargetType="{x:Type DataGridColumnHeadersPresenter}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type DataGridColumnHeadersPresenter}">
+                    <Grid>
+                        <DataGridColumnHeader x:Name="PART_FillerColumnHeader" IsHitTestVisible="False" Style="{DynamicResource FillerColumnHeader}"/>
+                        <ItemsPresenter/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <Style TargetType="{x:Type local:AutoFilterDataGrid}">
         <Setter Property="Template">
             <Setter.Value>
@@ -75,7 +104,7 @@
                                                 <ColumnDefinition Width="20"/>
                                             </Grid.ColumnDefinitions>
                                             <ContentPresenter ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="5,5.5" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" UseLayoutRounding="True" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                            <Button x:Name="FilterButton" BorderBrush="{x:Null}" Content="" Grid.Column="1" Foreground="{x:Null}" Focusable="False" HorizontalAlignment="Right" Tag="{Binding ElementName=FilterPopup, Mode=OneWay}" UseLayoutRounding="True" VerticalAlignment="Center" Width="20" IsHitTestVisible="{Binding IsHitTestVisible, RelativeSource={RelativeSource TemplatedParent}}" Visibility="{Binding IsHitTestVisible, Converter={StaticResource BooleanToVisibilityConverter}, RelativeSource={RelativeSource TemplatedParent}}">
+                                            <Button x:Name="FilterButton" BorderBrush="{x:Null}" Content="" Grid.Column="1" Foreground="{x:Null}" Focusable="False" HorizontalAlignment="Right" Tag="{Binding ElementName=FilterPopup, Mode=OneWay}" UseLayoutRounding="True" VerticalAlignment="Center" Width="20" IsHitTestVisible="{Binding IsHitTestVisible, RelativeSource={RelativeSource TemplatedParent}}">
                                                 <Button.Background>
                                                     <ImageBrush ImageSource="/AutoFilterDataGrid;component/FilteredObject13400_128x128.png"/>
                                                 </Button.Background>
@@ -83,6 +112,14 @@
                                                     <Style TargetType="{x:Type Button}">
                                                         <Setter Property="VerticalContentAlignment" Value="Center"/>
                                                         <Setter Property="Padding" Value="1"/>
+                                                        <Setter Property="Visibility">
+                                                            <Setter.Value>
+                                                                <MultiBinding Converter="{StaticResource FilterButtonVisibilityConverter}">
+                                                                    <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:AutoFilterDataGrid}}" Path="CanUserFilterData" />
+                                                                    <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type DataGridColumnHeader}}" Path="IsHitTestVisible" />
+                                                                </MultiBinding>
+                                                            </Setter.Value>
+                                                        </Setter>
                                                         <Setter Property="Template">
                                                             <Setter.Value>
                                                                 <ControlTemplate TargetType="{x:Type Button}">
@@ -137,7 +174,7 @@
                                     </Thumb>
                                     <Popup x:Name="FilterPopup" Grid.Column="1" StaysOpen="False" Width="Auto">
                                         <Grid Background="#FFE5E5E5" UseLayoutRounding="True" Width="{Binding ActualWidth, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="150">
-                                            <ListBox x:Name="FilterList" HorizontalAlignment="Stretch" Height="Auto" UseLayoutRounding="True" VerticalAlignment="Stretch" Width="Auto" ItemsSource="{Binding FilterPopupContent, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:AutoFilterDataGrid}}}" />
+                                            <ListBox x:Name="FilterList" HorizontalAlignment="Stretch" Height="Auto" UseLayoutRounding="True" VerticalAlignment="Stretch" Width="Auto" />
                                         </Grid>
                                     </Popup>
                                 </Grid>

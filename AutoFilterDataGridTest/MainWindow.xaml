@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AutoFilterDataGridTest"
         xmlns:AutoFilterDataGrid="clr-namespace:BetterDataGrid;assembly=AutoFilterDataGrid" xmlns:SampleDataSource="clr-namespace:Expression.Blend.SampleData.SampleDataSource" xmlns:BetterDataGrid="clr-namespace:BetterDataGrid;assembly=AutoFilterDataGrid" x:Name="window" x:Class="AutoFilterDataGridTest.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
     <Window.Resources>
         <SampleDataSource:SampleDataSource x:Key="SampleDataSource" d:IsDataSource="True"/>
     </Window.Resources>

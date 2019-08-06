@@ -17,8 +17,7 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Windows.Controls.Primitives;
 using System.Collections;
-
-
+using System.Globalization;
 
 namespace BetterDataGrid
 {
@@ -29,12 +28,6 @@ namespace BetterDataGrid
             DefaultStyleKeyProperty.OverrideMetadata(typeof(AutoFilterDataGrid), new
             FrameworkPropertyMetadata(typeof(AutoFilterDataGrid)));
         }
-        public static readonly DependencyProperty FilterPopupContentProperty = DependencyProperty.Register(
-            "FilterPopupContent",
-            typeof(ObservableCollection<CheckBox>),
-            typeof(AutoFilterDataGrid),
-            new FrameworkPropertyMetadata(new ObservableCollection<CheckBox>(), FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender)
-            );
         public static readonly DependencyProperty CanUserFilterDataProperty = DependencyProperty.Register(
             "CanUserFilterData",
             typeof(bool),
@@ -51,14 +44,6 @@ namespace BetterDataGrid
         private DataGridColumnHeader openFilterColumn;
         public event PropertyChangedEventHandler PropertyChanged;
         public new event DataGridSortingEventHandler Sorting;
-
-        public ObservableCollection<CheckBox> FilterPopupContent
-        {
-            get
-            {
-                return (ObservableCollection<CheckBox>)GetValue(FilterPopupContentProperty);
-            }
-        }
         [Category("Columns")]
         public bool CanUserFilterData
         {
@@ -99,14 +84,6 @@ namespace BetterDataGrid
 
         public AutoFilterDataGrid() : base()
         {
-            CheckBox tempCheck = new CheckBox
-            {
-                Content = "All",
-                FontWeight = FontWeights.Bold,
-            };
-            tempCheck.Checked += AllCheckBox_Checked;
-            tempCheck.Unchecked += AllCheckBox_Unchecked;
-            FilterPopupContent.Add(tempCheck);
             filterList = new List<FilterValue>();
             this.Loaded += AutoFilterDataGridLoaded;
         }
@@ -295,6 +272,7 @@ namespace BetterDataGrid
         internal void FilterPopup_Closed(object sender, EventArgs e)
         {
             Popup filterPopup = (Popup)sender;
+            ListBox popupContent = (ListBox)filterPopup.FindName("FilterList");
             int columnIndex = ((DataGridColumnHeader)filterPopup.TemplatedParent).DisplayIndex;
             FilterValue thisColumnFilter = filterList.Find((thisFilter) =>
             {
@@ -304,9 +282,9 @@ namespace BetterDataGrid
                     return false;
             });
             thisColumnFilter.FilteredValues = new List<string>();
-            for (int x = 1; x < FilterPopupContent.Count; x++)
+            for (int x = 1; x < popupContent.Items.Count; x++)
             {
-                CheckBox tempCheck = FilterPopupContent[x];
+                CheckBox tempCheck = popupContent.Items[x] as CheckBox;
                 if (!tempCheck.IsChecked.HasValue || !tempCheck.IsChecked.Value)
                     thisColumnFilter.FilteredValues.Add(tempCheck.Content.ToString());
             }
@@ -326,11 +304,17 @@ namespace BetterDataGrid
                     thisColumnFilter = thisFilter;
             }
             List<string> columnValues = new List<string>();
-            Popup filterPopup = (Popup)filterButton.Tag;
-            for (int x = 1; x < FilterPopupContent.Count; x = 1)
+            CheckBox allCheck = new CheckBox
             {
-                FilterPopupContent.RemoveAt(x);
-            }
+                Content = "All",
+                FontWeight = FontWeights.Bold,
+            };
+            allCheck.Checked += AllCheckBox_Checked;
+            allCheck.Unchecked += AllCheckBox_Unchecked;
+            Popup filterPopup = (Popup)filterButton.Tag;
+            ListBox popupContent = (ListBox)filterPopup.FindName("FilterList");
+            popupContent.Items.Clear();
+            popupContent.Items.Add(allCheck);
             if (this.HasItems)
             {
                 PropertyPath propertyPath = ((Binding)((DataGridBoundColumn)this.Columns[columnIndex]).Binding).Path;
@@ -369,16 +353,16 @@ namespace BetterDataGrid
                     }
                     tempCheck.Checked += CheckBox_Checked;
                     tempCheck.Unchecked += CheckBox_Unchecked;
-                    FilterPopupContent.Add(tempCheck);
+                    popupContent.Items.Add(tempCheck);
                 }
             }
             filterPopup.IsOpen = true;
-            if (FilterPopupContent.Count > 1)
+            if (popupContent.Items.Count > 1)
             {
                 bool? all = true;
-                for (int x = 1; x < FilterPopupContent.Count; x++)
+                for (int x = 1; x < popupContent.Items.Count; x++)
                 {
-                    CheckBox thisCheck = FilterPopupContent[x];
+                    CheckBox thisCheck = popupContent.Items[x] as CheckBox;
                     if (thisCheck.IsChecked == false && all.HasValue && all.Value == true)
                     {
                         all = false;
@@ -388,56 +372,60 @@ namespace BetterDataGrid
                         all = new bool?();
                     }
                 }
-                FilterPopupContent[0].IsChecked = all;
+                (popupContent.Items[0] as CheckBox).IsChecked = all;
             }
             else
             {
-                FilterPopupContent[0].IsChecked = true;
+                (popupContent.Items[0] as CheckBox).IsChecked = true;
             }
         }
         private void AllCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            for (int x = 1; x < FilterPopupContent.Count; x++)
+            ListBox popupContent = ((CheckBox)sender).Parent as ListBox;
+            for (int x = 1; x < popupContent.Items.Count; x++)
             {
-                CheckBox thisCheck = FilterPopupContent[x];
+                CheckBox thisCheck = popupContent.Items[x] as CheckBox;
                 thisCheck.IsChecked = true;
             }
         }
 
         private void AllCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            for (int x = 1; x < FilterPopupContent.Count; x++)
+            ListBox popupContent = ((CheckBox)sender).Parent as ListBox;
+            for (int x = 1; x < popupContent.Items.Count; x++)
             {
-                CheckBox thisCheck = FilterPopupContent[x];
+                CheckBox thisCheck = popupContent.Items[x] as CheckBox;
                 thisCheck.IsChecked = false;
             }
         }
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
+            ListBox popupContent = ((CheckBox)sender).Parent as ListBox;
             bool all = true;
-            for (int x = 1; x < FilterPopupContent.Count; x++)
+            for (int x = 1; x < popupContent.Items.Count; x++)
             {
-                CheckBox thisCheck = FilterPopupContent[x];
+                CheckBox thisCheck = popupContent.Items[x] as CheckBox;
                 if (thisCheck.IsChecked == false)
                 {
                     all = false;
                 }
             }
-            FilterPopupContent[0].IsChecked = all ? true : new bool?();
+            (popupContent.Items[0] as CheckBox).IsChecked = all ? true : new bool?();
         }
 
         private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
+            ListBox popupContent = ((CheckBox)sender).Parent as ListBox;
             bool all = true;
-            for (int x = 1; x < FilterPopupContent.Count; x++)
+            for (int x = 1; x < popupContent.Items.Count; x++)
             {
-                CheckBox thisCheck = FilterPopupContent[x];
+                CheckBox thisCheck = popupContent.Items[x] as CheckBox;
                 if (thisCheck.IsChecked != false)
                 {
                     all = false;
                 }
             }
-            FilterPopupContent[0].IsChecked = all ? false : new bool?();
+             (popupContent.Items[0] as CheckBox).IsChecked = all ? false : new bool?();
         }
         internal void DataGridColumnHeader_Click(object sender, RoutedEventArgs e)
         {
@@ -519,6 +507,35 @@ namespace BetterDataGrid
         protected override void OnSorting(DataGridSortingEventArgs eventArgs)
         {
             Sorting?.Invoke(this, eventArgs);
+        }
+    }
+    public class FilterButtonVisibilityConverter : IMultiValueConverter
+    {
+        public virtual object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values == null)
+                throw new ArgumentNullException("values");
+            foreach(object thisObject in values)
+            {
+                if(thisObject.GetType() != typeof(bool) && !typeof(bool).IsAssignableFrom(thisObject.GetType()))
+                {
+                    throw new ArgumentException("All value objects must be type bool", "values");
+                }
+            }
+            IEnumerable boolValues = values.Cast<bool>();
+            bool result = true;
+            foreach(bool thisBool in boolValues)
+            {
+                if (!thisBool)
+                    result = false;
+            }
+            BooleanToVisibilityConverter booleanToVisibility = new BooleanToVisibilityConverter();
+            return booleanToVisibility.Convert(result, typeof(Visibility), null, CultureInfo.CurrentCulture);
+        }
+
+        public virtual object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException("This converter does not support converting back to the original value");
         }
     }
 }

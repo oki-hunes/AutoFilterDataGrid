@@ -129,22 +129,25 @@ namespace BetterDataGrid
         }
         private void UpdateEventHandlers()
         {
-            foreach (DataGridColumn thisColumn in this.Columns)
+            if (this.IsLoaded)
             {
-                DataGridColumnHeader thisHeader = GetHeader(thisColumn, this);
-                try
+                foreach (DataGridColumn thisColumn in this.Columns)
                 {
-                    thisHeader.Click -= DataGridColumnHeader_Click;
-                    thisHeader.MouseDoubleClick -= DataGridColumnHeader_MouseDoubleClick;
-                    (thisHeader.Template.FindName("FilterButton", thisHeader) as Button).Click -= FilterButton_Click;
-                    (thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup).Closed -= FilterPopup_Closed;
-                }
-                finally
-                {
-                    thisHeader.Click += DataGridColumnHeader_Click;
-                    thisHeader.MouseDoubleClick += DataGridColumnHeader_MouseDoubleClick;
-                    (thisHeader.Template.FindName("FilterButton", thisHeader) as Button).Click += FilterButton_Click;
-                    (thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup).Closed += FilterPopup_Closed;
+                    DataGridColumnHeader thisHeader = GetHeader(thisColumn, this);
+                    try
+                    {
+                        thisHeader.Click -= DataGridColumnHeader_Click;
+                        thisHeader.MouseDoubleClick -= DataGridColumnHeader_MouseDoubleClick;
+                        (thisHeader.Template.FindName("FilterButton", thisHeader) as Button).Click -= FilterButton_Click;
+                        (thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup).Closed -= FilterPopup_Closed;
+                    }
+                    finally
+                    {
+                        thisHeader.Click += DataGridColumnHeader_Click;
+                        thisHeader.MouseDoubleClick += DataGridColumnHeader_MouseDoubleClick;
+                        (thisHeader.Template.FindName("FilterButton", thisHeader) as Button).Click += FilterButton_Click;
+                        (thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup).Closed += FilterPopup_Closed;
+                    }
                 }
             }
         }

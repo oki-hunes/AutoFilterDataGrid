@@ -223,15 +223,21 @@ namespace BetterDataGrid
                 string testObjectValue = "";
                 if (testObject.GetType() == typeof(DataRow) || testObject.GetType().IsSubclassOf(typeof(DataRow)))
                 {
-                    testObjectValue = ((DataRow)testObject).Field<object>(thisFilter.PropertyName).ToString();
+                    object CellValue = ((DataRow)testObject).Field<object>(thisFilter.PropertyName);
+                    if (CellValue != null)
+                        testObjectValue = CellValue.ToString();
                 }
                 else if (testObject.GetType() == typeof(DataRowView) || testObject.GetType().IsSubclassOf(typeof(DataRowView)))
                 {
-                    testObjectValue = ((DataRowView)testObject).Row.Field<object>(thisFilter.PropertyName).ToString();
+                    object CellValue = ((DataRowView)testObject).Row.Field<object>(thisFilter.PropertyName);
+                    if(CellValue != null)
+                        testObjectValue = CellValue.ToString();
                 }
                 else
                 {
-                    testObjectValue = testObject.GetType().GetProperty(thisFilter.PropertyName).GetMethod.Invoke(testObject, new object[] { }).ToString();
+                    object CellValue = testObject.GetType().GetProperty(thisFilter.PropertyName).GetMethod.Invoke(testObject, new object[] { });
+                    if (CellValue != null)
+                        testObjectValue = CellValue.ToString();
                 }
                 foreach (string filterValue in thisFilter.FilteredValues)
                 {

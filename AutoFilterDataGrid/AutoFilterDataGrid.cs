@@ -268,9 +268,14 @@ namespace BetterDataGrid
         private void GenerateFilterList()
         {
             filterList = new List<FilterValue>();
-            foreach (DataGridBoundColumn thisColumn in this.Columns)
+            foreach (DataGridColumn thisColumn in this.Columns)
             {
-                filterList.Add(new FilterValue(((Binding)thisColumn.Binding).Path.Path.ToString(), new List<string>()));
+                if (typeof(DataGridBoundColumn).IsAssignableFrom(thisColumn.GetType()) && (thisColumn as DataGridBoundColumn).Binding != null)
+                {
+                    PropertyPath propertyPath = ((Binding)(thisColumn as DataGridBoundColumn).Binding).Path;
+                    if (propertyPath != null && propertyPath.Path != null)
+                        filterList.Add(new FilterValue(propertyPath.Path.ToString(), new List<string>()));
+                }
             }
         }
         internal void FilterPopup_Closed(object sender, EventArgs e)
@@ -319,26 +324,31 @@ namespace BetterDataGrid
             ListBox popupContent = (ListBox)filterPopup.FindName("FilterList");
             popupContent.Items.Clear();
             popupContent.Items.Add(allCheck);
-            if (this.HasItems)
+            if (((this.ItemsSource ?? this.Items) as IList).Count > 0)
             {
                 PropertyPath propertyPath = ((Binding)((DataGridBoundColumn)this.Columns[columnIndex]).Binding).Path;
-                Type itemsType = this.Items[0].GetType();
                 foreach (object item in this.ItemsSource ?? this.Items)
                 {
                     if (item.GetType().ToString() != "MS.Internal.NamedObject")
                     {
                         string thisValue = "";
-                        if (itemsType == typeof(DataRow) || itemsType.IsSubclassOf(typeof(DataRow)))
+                        if (item.GetType() == typeof(DataRow) || item.GetType().IsSubclassOf(typeof(DataRow)))
                         {
-                            thisValue = ((DataRow)item).Field<object>(propertyPath.Path).ToString();
+                            object CellValue = ((DataRow)item).Field<object>(propertyPath.Path);
+                            if (CellValue != null)
+                                thisValue = CellValue.ToString();
                         }
-                        else if (itemsType == typeof(DataRowView) || itemsType.IsSubclassOf(typeof(DataRowView)))
+                        else if (item.GetType() == typeof(DataRowView) || item.GetType().IsSubclassOf(typeof(DataRowView)))
                         {
-                            thisValue = ((DataRowView)item).Row.Field<object>(propertyPath.Path).ToString();
+                            object CellValue = ((DataRowView)item).Row.Field<object>(propertyPath.Path);
+                            if (CellValue != null)
+                                thisValue = CellValue.ToString();
                         }
                         else
                         {
-                            thisValue = itemsType.GetProperty(propertyPath.Path).GetMethod.Invoke(item, new object[] { }).ToString();
+                            object CellValue = item.GetType().GetProperty(propertyPath.Path).GetMethod.Invoke(item, new object[] { });
+                            if (CellValue != null)
+                                thisValue = CellValue.ToString();
                         }
                         if (!columnValues.Contains(thisValue))
                             columnValues.Add(thisValue);
@@ -541,6 +551,23 @@ namespace BetterDataGrid
         }
 
         public virtual object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException("This converter does not support converting back to the original value");
+        }
+    }
+    internal class ColumnTypeFilterBoolConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+                return false;
+            if (typeof(DataGridBoundColumn).IsAssignableFrom(value.GetType()) && (value as DataGridBoundColumn).Binding != null && ((value as DataGridBoundColumn).Binding as Binding).Path != null)
+                return true;
+            else
+                return false;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException("This converter does not support converting back to the original value");
         }

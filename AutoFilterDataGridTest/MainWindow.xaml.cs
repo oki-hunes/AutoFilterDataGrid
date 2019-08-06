@@ -36,10 +36,11 @@ namespace AutoFilterDataGridTest
             testTable = new DataTable();
             testTable.Columns.Add("Property1");
             testTable.Columns.Add("Property2");
+            testTable.Columns.Add("Property3");
             SampleDataSource testData = new SampleDataSource();
             foreach(Item test in testData.Collection)
             {
-                testTable.LoadDataRow(new object[] { test.Property1, test.Property2 }, true);
+                testTable.LoadDataRow(new object[] { test.Property1, test.Property2, DBNull.Value }, true);
             }
             InitializeComponent();
         }

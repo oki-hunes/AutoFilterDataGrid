@@ -6,6 +6,7 @@
     xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero">
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     <local:FilterButtonVisibilityConverter x:Key="FilterButtonVisibilityConverter"/>
+    <local:ColumnTypeFilterBoolConverter x:Key="ColumnTypeFilterBoolConverter"/>
     <Style TargetType="{x:Type local:AutoFilterDataGrid}">
         <Setter Property="Template">
             <Setter.Value>
@@ -89,6 +90,7 @@
                                                                 <MultiBinding Converter="{StaticResource FilterButtonVisibilityConverter}">
                                                                     <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type local:AutoFilterDataGrid}}" Path="CanUserFilterData" />
                                                                     <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type DataGridColumnHeader}}" Path="IsHitTestVisible" />
+                                                                    <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type DataGridColumnHeader}}" Path="Column" Converter="{StaticResource ColumnTypeFilterBoolConverter}" />
                                                                 </MultiBinding>
                                                             </Setter.Value>
                                                         </Setter>

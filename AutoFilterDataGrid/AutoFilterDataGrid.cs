@@ -41,7 +41,6 @@ namespace BetterDataGrid
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender, OnItemsSourcePropertyChanged)
             );
         private List<FilterValue> filterList;
-        private DataGridColumnHeader openFilterColumn;
         public event PropertyChangedEventHandler PropertyChanged;
         public new event DataGridSortingEventHandler Sorting;
         [Category("Columns")]
@@ -155,8 +154,7 @@ namespace BetterDataGrid
             {
                 DependencyObject child = VisualTreeHelper.GetChild(reference, i);
 
-                DataGridColumnHeader colHeader = child as DataGridColumnHeader;
-                if ((colHeader != null) && (colHeader.Column == column))
+                if ((child is DataGridColumnHeader colHeader) && (colHeader.Column == column))
                 {
                     return colHeader;
                 }
@@ -319,7 +317,7 @@ namespace BetterDataGrid
             {
                 PropertyPath propertyPath = ((Binding)((DataGridBoundColumn)this.Columns[columnIndex]).Binding).Path;
                 Type itemsType = this.Items[0].GetType();
-                foreach (object item in this.ItemsSource != null ? this.ItemsSource : this.Items)
+                foreach (object item in this.ItemsSource ?? this.Items)
                 {
                     if (item.GetType().ToString() != "MS.Internal.NamedObject")
                     {
@@ -365,7 +363,10 @@ namespace BetterDataGrid
                     CheckBox thisCheck = popupContent.Items[x] as CheckBox;
                     if (thisCheck.IsChecked == false && all.HasValue && all.Value == true)
                     {
-                        all = false;
+                        if(x == 1)
+                            all = false;
+                        else
+                            all = new bool?();
                     }
                     if (thisCheck.IsChecked == true && all.HasValue && all.Value == false)
                     {

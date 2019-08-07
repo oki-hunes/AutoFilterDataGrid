@@ -315,7 +315,7 @@ namespace BetterDataGrid
                     tempFilter.FilteredValues.Add(tempCheck.Content.ToString());
             }
             bool changed = tempFilter != thisColumnFilter;
-            thisColumnFilter = tempFilter;
+            thisColumnFilter.FilteredValues = tempFilter.FilteredValues;
             this.Items.Filter = new Predicate<object>(this.Contains);
             if(changed)
                 FilterUpdated?.Invoke(this, new EventArgs());

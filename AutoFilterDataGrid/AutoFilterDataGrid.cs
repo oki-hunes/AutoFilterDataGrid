@@ -43,6 +43,7 @@ namespace BetterDataGrid
         private List<FilterValue> filterList;
         public event PropertyChangedEventHandler PropertyChanged;
         public new event DataGridSortingEventHandler Sorting;
+        public event EventHandler FilterUpdated;
         [Category("Columns")]
         public bool CanUserFilterData
         {
@@ -281,6 +282,18 @@ namespace BetterDataGrid
                 }
             }
         }
+        public void ClearFilter()
+        {
+            bool hadFilters = false;
+            foreach(FilterValue thisFilter in FilterList)
+            {
+                if (thisFilter.FilteredValues.Count > 0)
+                    hadFilters = true;
+                thisFilter.FilteredValues = new List<string>();
+            }
+            if(hadFilters)
+                FilterUpdated?.Invoke(this, new EventArgs());
+        }
         internal void FilterPopup_Closed(object sender, EventArgs e)
         {
             Popup filterPopup = (Popup)sender;
@@ -293,15 +306,19 @@ namespace BetterDataGrid
                 else
                     return false;
             });
-            thisColumnFilter.FilteredValues = new List<string>();
+            //thisColumnFilter.FilteredValues = new List<string>();
+            FilterValue tempFilter = new FilterValue(thisColumnFilter.PropertyName, new List<string>());
             for (int x = 1; x < popupContent.Items.Count; x++)
             {
                 CheckBox tempCheck = popupContent.Items[x] as CheckBox;
                 if (!tempCheck.IsChecked.HasValue || !tempCheck.IsChecked.Value)
-                    thisColumnFilter.FilteredValues.Add(tempCheck.Content.ToString());
+                    tempFilter.FilteredValues.Add(tempCheck.Content.ToString());
             }
-            if (CanUserFilterData)
-                this.Items.Filter = new Predicate<object>(this.Contains);
+            bool changed = tempFilter != thisColumnFilter;
+            thisColumnFilter = tempFilter;
+            this.Items.Filter = new Predicate<object>(this.Contains);
+            if(changed)
+                FilterUpdated?.Invoke(this, new EventArgs());
         }
 
         internal void FilterButton_Click(object sender, RoutedEventArgs e)

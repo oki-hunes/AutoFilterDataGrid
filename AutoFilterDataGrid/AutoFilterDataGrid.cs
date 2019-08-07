@@ -129,11 +129,11 @@ namespace BetterDataGrid
         }
         private void UpdateEventHandlers()
         {
-            if (!DesignerProperties.GetIsInDesignMode(this))
+            foreach (DataGridColumn thisColumn in this.Columns)
             {
-                foreach (DataGridColumn thisColumn in this.Columns)
+                DataGridColumnHeader thisHeader = GetHeader(thisColumn, this);
+                if (thisHeader != null)
                 {
-                    DataGridColumnHeader thisHeader = GetHeader(thisColumn, this);
                     try
                     {
                         thisHeader.Click -= DataGridColumnHeader_Click;

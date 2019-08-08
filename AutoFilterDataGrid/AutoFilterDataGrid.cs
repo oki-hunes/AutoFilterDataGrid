@@ -86,6 +86,7 @@ namespace BetterDataGrid
         {
             filterList = new List<FilterValue>();
             this.Loaded += AutoFilterDataGridLoaded;
+            ItemsSource = new ArrayList();
         }
         private static void OnItemsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {

@@ -4,19 +4,21 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AutoFilterDataGridTest"
+        xmlns:System="clr-namespace:System;assembly=mscorlib"
         xmlns:AutoFilterDataGrid="clr-namespace:BetterDataGrid;assembly=AutoFilterDataGrid" xmlns:SampleDataSource="clr-namespace:Expression.Blend.SampleData.SampleDataSource" xmlns:BetterDataGrid="clr-namespace:BetterDataGrid;assembly=AutoFilterDataGrid" x:Name="window" x:Class="AutoFilterDataGridTest.MainWindow"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
     <Window.Resources>
         <SampleDataSource:SampleDataSource x:Key="SampleDataSource" d:IsDataSource="True"/>
     </Window.Resources>
-    <Grid DataContext="{Binding Source={StaticResource SampleDataSource}}">
-        <AutoFilterDataGrid:AutoFilterDataGrid ItemsSource="{Binding TestTable, ElementName=window}" AutoGenerateColumns="False" CanUserFilterData="True">
-            <BetterDataGrid:AutoFilterDataGrid.Columns>
+    <Grid>
+        <DataGrid ItemsSource="{Binding TestTable, ElementName=window}">
+            <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Property1}" Header="Property1"/>
                 <DataGridCheckBoxColumn Binding="{Binding Property2}" Header="Property2"/>
                 <DataGridTextColumn Binding="{Binding Property3}" Header="Property3"/>
-            </BetterDataGrid:AutoFilterDataGrid.Columns>
-        </AutoFilterDataGrid:AutoFilterDataGrid>
+            </DataGrid.Columns>
+        </DataGrid>
+
     </Grid>
 </Window>

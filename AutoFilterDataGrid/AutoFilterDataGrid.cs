@@ -86,7 +86,7 @@ namespace BetterDataGrid
         {
             filterList = new List<FilterValue>();
             this.Loaded += AutoFilterDataGridLoaded;
-            ItemsSource = new ArrayList();
+            //ItemsSource = new ArrayList();
         }
         private static void OnItemsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -191,14 +191,9 @@ namespace BetterDataGrid
             {
                 foreach (DataGridBoundColumn thisColumn in e.OldItems)
                 {
-                    filterList.RemoveAt(thisColumn.DisplayIndex);
-                }
-            }
-            if (e.Action == NotifyCollectionChangedAction.Move)
-            {
-                foreach (DataGridBoundColumn thisColumn in e.OldItems)
-                {
-                    filterList.RemoveAt(thisColumn.DisplayIndex);
+                    FilterValue thisColumnFilter = GetFilterValueFromColumn((DataGridBoundColumn)thisColumn);
+                    if(thisColumnFilter != null)
+                        filterList.Remove(thisColumnFilter);
                 }
             }
         }
@@ -327,12 +322,7 @@ namespace BetterDataGrid
             //TODO rewrite to use the listview directly instead of the property to see if that fixes the disappearing all button
             Button filterButton = (Button)sender;
             int columnIndex = ((DataGridColumnHeader)filterButton.TemplatedParent).DisplayIndex;
-            FilterValue thisColumnFilter = new FilterValue();
-            foreach (FilterValue thisFilter in filterList)
-            {
-                if (thisFilter.PropertyName == ((Binding)((DataGridBoundColumn)this.Columns[columnIndex]).Binding).Path.Path.ToString())
-                    thisColumnFilter = thisFilter;
-            }
+            FilterValue thisColumnFilter = GetFilterValueFromColumn((DataGridBoundColumn)this.Columns[columnIndex]) ?? new FilterValue();
             List<string> columnValues = new List<string>();
             CheckBox allCheck = new CheckBox
             {
@@ -545,6 +535,15 @@ namespace BetterDataGrid
         protected override void OnSorting(DataGridSortingEventArgs eventArgs)
         {
             Sorting?.Invoke(this, eventArgs);
+        }
+        private FilterValue GetFilterValueFromColumn(DataGridBoundColumn column)
+        {
+            foreach (FilterValue thisFilter in filterList)
+            {
+                if (thisFilter.PropertyName == ((Binding)column.Binding).Path.Path.ToString())
+                    return thisFilter;
+            }
+            return null;
         }
     }
     internal class FilterButtonVisibilityConverter : IMultiValueConverter

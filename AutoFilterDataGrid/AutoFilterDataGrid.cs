@@ -43,7 +43,7 @@ namespace BetterDataGrid
         private List<FilterValue> filterList;
         public event PropertyChangedEventHandler PropertyChanged;
         public new event DataGridSortingEventHandler Sorting;
-        public event EventHandler FilterUpdated;
+        public event FilterChangedEventHandler FilterChanged;
         [Category("Columns")]
         public bool CanUserFilterData
         {
@@ -280,6 +280,8 @@ namespace BetterDataGrid
         }
         public void ClearFilter()
         {
+            List<FilterValue> oldFilter = (from FilterValue thisFilter in FilterList
+                                           select new FilterValue(thisFilter.PropertyName, thisFilter.FilteredValues)).ToList();
             bool hadFilters = false;
             foreach(FilterValue thisFilter in FilterList)
             {
@@ -288,10 +290,12 @@ namespace BetterDataGrid
                 thisFilter.FilteredValues = new List<string>();
             }
             if(hadFilters)
-                FilterUpdated?.Invoke(this, new EventArgs());
+                FilterChanged?.Invoke(this, new FilterChangedEventArgs(oldFilter, FilterList));
         }
         internal void FilterPopup_Closed(object sender, EventArgs e)
         {
+            List<FilterValue> oldFilter = (from FilterValue thisFilter in FilterList
+                                           select new FilterValue(thisFilter.PropertyName, thisFilter.FilteredValues)).ToList();
             Popup filterPopup = (Popup)sender;
             ListBox popupContent = (ListBox)filterPopup.FindName("FilterList");
             int columnIndex = ((DataGridColumnHeader)filterPopup.TemplatedParent).DisplayIndex;
@@ -314,7 +318,7 @@ namespace BetterDataGrid
             thisColumnFilter.FilteredValues = tempFilter.FilteredValues;
             this.Items.Filter = new Predicate<object>(this.Contains);
             if(changed)
-                FilterUpdated?.Invoke(this, new EventArgs());
+                FilterChanged?.Invoke(this, new FilterChangedEventArgs(oldFilter, FilterList));
         }
 
         internal void FilterButton_Click(object sender, RoutedEventArgs e)
@@ -546,6 +550,21 @@ namespace BetterDataGrid
             return null;
         }
     }
+    public class FilterChangedEventArgs : EventArgs
+    {
+        List<FilterValue> oldValue;
+        List<FilterValue> newValue;
+
+        public FilterChangedEventArgs(List<FilterValue> oldValue, List<FilterValue> newValue)
+        {
+            this.oldValue = oldValue;
+            this.newValue = newValue;
+        }
+
+        public List<FilterValue> OldValue { get => oldValue; }
+        public List<FilterValue> NewValue { get => newValue; }
+    }
+    public delegate void FilterChangedEventHandler(object sender, FilterChangedEventArgs e);
     internal class FilterButtonVisibilityConverter : IMultiValueConverter
     {
         public virtual object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)

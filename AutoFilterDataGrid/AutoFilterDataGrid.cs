@@ -67,6 +67,7 @@ namespace BetterDataGrid
             set
             {
                 filterList = value;
+                this.Items.Filter = new Predicate<object>(this.Contains);
                 NotifyPropertyChanged("FilterList");
             }
         }

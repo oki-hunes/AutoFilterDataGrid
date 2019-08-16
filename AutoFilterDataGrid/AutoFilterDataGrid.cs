@@ -44,6 +44,7 @@ namespace BetterDataGrid
         public event PropertyChangedEventHandler PropertyChanged;
         public new event DataGridSortingEventHandler Sorting;
         public event FilterChangedEventHandler FilterChanged;
+        public event CannotDeleteValueEventHandler CannotDeleteValue;
         [Category("Columns")]
         public bool CanUserFilterData
         {
@@ -87,13 +88,164 @@ namespace BetterDataGrid
         {
             filterList = new List<FilterValue>();
             this.Loaded += AutoFilterDataGridLoaded;
+            SetBinding(ItemsControl.ItemsSourceProperty, new Binding()
+            {
+                Source = this,
+                Path = new PropertyPath("ItemsSource"),
+                Converter = new ListToListCollectionViewConverter(),
+                Mode = BindingMode.TwoWay
+            });
+            this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Cut, new ExecutedRoutedEventHandler(ExecutedCut), new CanExecuteRoutedEventHandler(CanExecuteCut)));
             //ItemsSource = new ArrayList();
+        }
+        private void CanExecuteCut(object sender, CanExecuteRoutedEventArgs e)
+        {
+            OnCanExecuteCut(e);
+        }
+        private void ExecutedCut(object sender, ExecutedRoutedEventArgs e)
+        {
+            OnExecutedCut(e);
+        }
+        protected virtual void OnCanExecuteCut(CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = ApplicationCommands.Copy.CanExecute(null, this) && ApplicationCommands.Delete.CanExecute(null, this);
+            e.Handled = true;
+        }
+        protected virtual void OnExecutedCut(ExecutedRoutedEventArgs e)
+        {
+            ApplicationCommands.Copy.Execute(null, this);
+            ApplicationCommands.Delete.Execute(null, this);
+            e.Handled = true;
+        }
+        protected override void OnCanExecuteDelete(CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = !this.IsReadOnly && (this.SelectionUnit != DataGridSelectionUnit.FullRow || this.CanUserDeleteRows) && this.SelectedCells.Count > 0;
+            e.Handled = true;
+        }
+        protected override void OnExecutedDelete(ExecutedRoutedEventArgs e)
+        {
+            List<object> fullRows = new List<object>();
+            foreach(object thisItem in this.SelectedItems)
+            {
+                if (this.ItemContainerGenerator.ContainerFromItem(thisItem) is DataGridRow row && row.IsSelected)
+                {
+                    fullRows.Add(thisItem);
+                }
+            }
+            foreach(object thisItem in fullRows)
+            {
+                if (this.SelectionUnit == DataGridSelectionUnit.FullRow)
+                {
+                    this.SelectedItems.Remove(thisItem);
+                }
+                else
+                {
+                    DataGridCellInfo[] tempCells = new DataGridCellInfo[this.SelectedCells.Count];
+                    SelectedCells.CopyTo(tempCells, 0);
+                    foreach (DataGridCellInfo thisCell in tempCells)
+                    {
+                        if (thisCell.Item == thisItem)
+                            SelectedCells.Remove(thisCell);
+                    }
+                }
+                if (this.ItemsSource != null)
+                {
+                    ((this as ItemsControl).ItemsSource as ListCollectionView).Remove(thisItem);
+                }
+                else
+                {
+                    (this.Items as IList).Remove(thisItem);
+                }
+            } 
+            List<Exception> cannotDeleteExceptions = new List<Exception>();
+            foreach (DataGridCellInfo thisCell in this.SelectedCells)
+            {
+                try
+                {
+                    DeleteCellValue(thisCell);
+                }
+                catch(NotSupportedException ex)
+                {
+                    cannotDeleteExceptions.Add(ex);
+                }
+            }
+            if (cannotDeleteExceptions.Count > 0)
+                throw new AggregateException(cannotDeleteExceptions);
+        }
+        private MethodInfo GetSetFieldMethod()
+        {
+            foreach(MethodInfo thisMethod in typeof(DataRowExtensions).GetMethods())
+            {
+                if(thisMethod.Name == "SetField")
+                {
+                    foreach(ParameterInfo parameter in thisMethod.GetParameters())
+                    {
+                        if (parameter.Name == "columnName" && parameter.ParameterType == typeof(string))
+                            return thisMethod;
+                    }
+                }
+            }
+            return null;
+        }
+        private object[] GetInvokeParams(PropertyPath propertyPath, Type valueType, object item)
+        {
+            bool canBeNull = !valueType.IsValueType;
+            if (item.GetType() == typeof(DataRow) || item.GetType().IsSubclassOf(typeof(DataRow)))
+            {
+                return new object[] { item, propertyPath.Path, canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
+            }
+            else if (item.GetType() == typeof(DataRowView) || item.GetType().IsSubclassOf(typeof(DataRowView)))
+            {
+                return new object[] { (item as DataRowView).Row, propertyPath.Path, canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
+            }
+            else
+            {
+                return new object[] { canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
+            }
+        }
+        protected void DeleteCellValue(DataGridCellInfo thisCell)
+        {
+            PropertyPath propertyPath = ((thisCell.Column as DataGridBoundColumn).Binding as Binding).Path;
+            object[] invokeParams = Array.Empty<object>();
+            MethodInfo setMethod;
+            object invokeItem;
+            Type valueType;
+            if (thisCell.Item.GetType() == typeof(DataRow) || thisCell.Item.GetType().IsSubclassOf(typeof(DataRow)))
+            {
+                setMethod = GetSetFieldMethod().MakeGenericMethod(new Type[] { typeof(object) });
+                valueType = ((DataRow)thisCell.Item).Field<object>(propertyPath.Path).GetType();
+                invokeItem = null;
+            }
+            else if (thisCell.Item.GetType() == typeof(DataRowView) || thisCell.Item.GetType().IsSubclassOf(typeof(DataRowView)))
+            {
+                setMethod = GetSetFieldMethod().MakeGenericMethod(new Type[] { typeof(object) });
+                valueType = ((DataRowView)thisCell.Item).Row.Field<object>(propertyPath.Path).GetType();
+                invokeItem = null;
+            }
+            else
+            {
+                setMethod = thisCell.Item.GetType().GetProperty(propertyPath.Path).GetSetMethod();
+                valueType = thisCell.Item.GetType().GetProperty(propertyPath.Path).PropertyType;
+                invokeItem = thisCell.Item;
+            }
+            if (valueType.IsValueType && Nullable.GetUnderlyingType(valueType) == null && valueType.GetConstructor(Array.Empty<Type>()) == null)
+            {
+                if (CannotDeleteValue != null)
+                    this.CannotDeleteValue.Invoke(this, new CannotDeleteValueEventArgs(thisCell.Item, propertyPath, valueType));
+                else
+                    throw new NotSupportedException("Cannot delete value because it's type " + valueType.ToString() + " cannot be set to null and does not have a parameterless constructor");
+            }
+            else
+            {
+                setMethod.Invoke(invokeItem, GetInvokeParams(propertyPath, valueType, thisCell.Item));
+            }
         }
         private static void OnItemsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue != null)
             {
-                CollectionView tempView = new ListCollectionView(Array.Empty<string>());
+                _ = new ListCollectionView(Array.Empty<string>());
+                CollectionView tempView;
                 if (e.NewValue is CollectionView || typeof(CollectionView).IsAssignableFrom(e.NewValue.GetType()))
                 {
                     tempView = e.NewValue as CollectionView;
@@ -104,8 +256,7 @@ namespace BetterDataGrid
                     }
                     else
                     {
-                        d.SetValue(ItemsControl.ItemsSourceProperty, tempView);
-                        d.GetType().GetMethod("SetFilter", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(d, new object[] { });
+                        d.GetType().GetMethod("SetFilter", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(d, Array.Empty<object>());
                     }
                 }
                 else
@@ -118,13 +269,12 @@ namespace BetterDataGrid
                     }
                     else
                     {
-                        d.SetValue(ItemsControl.ItemsSourceProperty, tempView);
-                        d.GetType().GetMethod("SetFilter", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(d, new object[] { });
+                        d.GetType().GetMethod("SetFilter", BindingFlags.NonPublic | BindingFlags.Instance)?.Invoke(d, Array.Empty<object>());
                     }
                 }
             }
             else
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException("e.NewValue");
         }
         internal void SetFilter()
         {
@@ -236,7 +386,7 @@ namespace BetterDataGrid
                 }
                 else
                 {
-                    object CellValue = testObject.GetType().GetProperty(thisFilter.PropertyName).GetMethod.Invoke(testObject, new object[] { });
+                    object CellValue = testObject.GetType().GetProperty(thisFilter.PropertyName).GetMethod.Invoke(testObject, Array.Empty<object>());
                     if (CellValue != null)
                         testObjectValue = CellValue.ToString();
                 }
@@ -362,7 +512,7 @@ namespace BetterDataGrid
                         }
                         else
                         {
-                            object CellValue = item.GetType().GetProperty(propertyPath.Path).GetMethod.Invoke(item, new object[] { });
+                            object CellValue = item.GetType().GetProperty(propertyPath.Path).GetMethod.Invoke(item, Array.Empty<object>());
                             if (CellValue != null)
                                 thisValue = CellValue.ToString();
                         }
@@ -550,11 +700,53 @@ namespace BetterDataGrid
             }
             return null;
         }
+        protected class ListToListCollectionViewConverter : IValueConverter
+        {
+            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                if (value == null)
+                    return null;
+                _ = new ListCollectionView(Array.Empty<string>());
+                CollectionView tempView;
+                if (value is CollectionView || typeof(CollectionView).IsAssignableFrom(value.GetType()))
+                {
+                    tempView = value as CollectionView;
+                }
+                else
+                {
+                    tempView = new ListCollectionView((IList)value);
+                }
+                return tempView;
+            }
+
+            public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                return value as IList;
+            }
+        }
     }
+    public class CannotDeleteValueEventArgs : EventArgs
+    {
+        private readonly object item;
+        private readonly PropertyPath property;
+        private readonly Type propertyType;
+
+        public CannotDeleteValueEventArgs(object item, PropertyPath property, Type propertyType)
+        {
+            this.item = item;
+            this.property = property;
+            this.propertyType = propertyType;
+        }
+
+        public object Item { get => item; }
+        public PropertyPath Property { get => property; }
+        public Type PropertyType { get => propertyType; }
+    }
+    public delegate void CannotDeleteValueEventHandler(object sender, CannotDeleteValueEventArgs e);
     public class FilterChangedEventArgs : EventArgs
     {
-        List<FilterValue> oldValue;
-        List<FilterValue> newValue;
+        readonly List<FilterValue> oldValue;
+        readonly List<FilterValue> newValue;
 
         public FilterChangedEventArgs(List<FilterValue> oldValue, List<FilterValue> newValue)
         {
@@ -571,12 +763,12 @@ namespace BetterDataGrid
         public virtual object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
             if (values == null)
-                throw new ArgumentNullException("values");
+                throw new ArgumentNullException(nameof(values));
             foreach(object thisObject in values)
             {
                 if(thisObject.GetType() != typeof(bool) && !typeof(bool).IsAssignableFrom(thisObject.GetType()))
                 {
-                    throw new ArgumentException("All value objects must be type bool", "values");
+                    throw new ArgumentException("All value objects must be type bool", nameof(values));
                 }
             }
             IEnumerable boolValues = values.Cast<bool>();

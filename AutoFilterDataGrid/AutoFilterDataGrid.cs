@@ -192,15 +192,24 @@ namespace BetterDataGrid
             bool canBeNull = !valueType.IsValueType;
             if (item.GetType() == typeof(DataRow) || item.GetType().IsSubclassOf(typeof(DataRow)))
             {
-                return new object[] { item, propertyPath.Path, canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
+                if (IsNumericType(valueType) && !canBeNull)
+                    return new object[] { item, propertyPath.Path, 0 };
+                else
+                    return new object[] { item, propertyPath.Path, canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
             }
             else if (item.GetType() == typeof(DataRowView) || item.GetType().IsSubclassOf(typeof(DataRowView)))
             {
-                return new object[] { (item as DataRowView).Row, propertyPath.Path, canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
+                if (IsNumericType(valueType) && !canBeNull)
+                    return new object[] { (item as DataRowView).Row, propertyPath.Path, 0 };
+                else
+                    return new object[] { (item as DataRowView).Row, propertyPath.Path, canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
             }
             else
             {
-                return new object[] { canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
+                if(IsNumericType(valueType) && !canBeNull)
+                    return new object[] { 0 };
+                else
+                    return new object[] { canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
             }
         }
         protected void DeleteCellValue(DataGridCellInfo thisCell)
@@ -228,7 +237,7 @@ namespace BetterDataGrid
                 valueType = thisCell.Item.GetType().GetProperty(propertyPath.Path).PropertyType;
                 invokeItem = thisCell.Item;
             }
-            if (valueType.IsValueType && Nullable.GetUnderlyingType(valueType) == null && valueType.GetConstructor(Array.Empty<Type>()) == null)
+            if (valueType.IsValueType && Nullable.GetUnderlyingType(valueType) == null && valueType.GetConstructor(Array.Empty<Type>()) == null && !IsNumericType(thisCell.Item.GetType().GetProperty(propertyPath.Path).PropertyType))
             {
                 if (CannotDeleteValue != null)
                     this.CannotDeleteValue.Invoke(this, new CannotDeleteValueEventArgs(thisCell.Item, propertyPath, valueType));
@@ -238,6 +247,28 @@ namespace BetterDataGrid
             else
             {
                 setMethod.Invoke(invokeItem, GetInvokeParams(propertyPath, valueType, thisCell.Item));
+            }
+        }
+        public bool IsNumericType(Type t)
+        {
+            if (t == null)
+                return false;
+            switch (Type.GetTypeCode(t))
+            {
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.Decimal:
+                case TypeCode.Double:
+                case TypeCode.Single:
+                    return true;
+                default:
+                    return false;
             }
         }
         private static void OnItemsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

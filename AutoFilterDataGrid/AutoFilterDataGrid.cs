@@ -127,7 +127,7 @@ namespace BetterDataGrid
             List<object> fullRows = new List<object>();
             foreach(object thisItem in this.SelectedItems)
             {
-                if (this.ItemContainerGenerator.ContainerFromItem(thisItem) is DataGridRow row && row.IsSelected)
+                if (this.ItemContainerGenerator.ContainerFromItem(thisItem) is DataGridRow row && row.IsSelected && thisItem.GetType().ToString() != "MS.Internal.NamedObject")
                 {
                     fullRows.Add(thisItem);
                 }
@@ -162,7 +162,8 @@ namespace BetterDataGrid
             {
                 try
                 {
-                    DeleteCellValue(thisCell);
+                    if(thisCell.Item.GetType().ToString() != "MS.Internal.NamedObject")
+                        DeleteCellValue(thisCell);
                 }
                 catch(NotSupportedException ex)
                 {

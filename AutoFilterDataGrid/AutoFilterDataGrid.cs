@@ -18,6 +18,7 @@ using System.Data;
 using System.Windows.Controls.Primitives;
 using System.Collections;
 using System.Globalization;
+using System.Windows.Markup;
 
 namespace BetterDataGrid
 {
@@ -40,6 +41,8 @@ namespace BetterDataGrid
             typeof(AutoFilterDataGrid),
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits | FrameworkPropertyMetadataOptions.AffectsRender, OnItemsSourcePropertyChanged)
             );
+        private EventSetter filterButtonClick;
+        private EventSetter filterPopupClosed;
         private List<FilterValue> filterList;
         public event PropertyChangedEventHandler PropertyChanged;
         public new event DataGridSortingEventHandler Sorting;
@@ -83,7 +86,6 @@ namespace BetterDataGrid
                 SetValue(ItemsSourceProperty, value);
             }
         }
-
         public AutoFilterDataGrid() : base()
         {
             filterList = new List<FilterValue>();
@@ -336,6 +338,7 @@ namespace BetterDataGrid
                 }
             }
         }
+        
         private DataGridColumnHeader GetHeader(DataGridColumn column, DependencyObject reference)
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(reference); i++)
@@ -367,7 +370,7 @@ namespace BetterDataGrid
                     else
                         filterList.Insert(thisColumn.DisplayIndex, new FilterValue(((Binding)thisColumn.Binding).Path.Path.ToString(), new List<string>()));
                 }
-                UpdateEventHandlers();
+                //UpdateEventHandlers();
                 
             }
             if (e.Action == NotifyCollectionChangedAction.Remove)
@@ -443,10 +446,14 @@ namespace BetterDataGrid
             }
             finally
             {
-                UpdateEventHandlers();
+                //UpdateEventHandlers();
             }
             if (CanUserFilterData)
                 this.Items.Filter = new Predicate<object>(this.Contains);
+        }
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
         }
         private void GenerateFilterList()
         {
@@ -475,7 +482,7 @@ namespace BetterDataGrid
             if(hadFilters)
                 FilterChanged?.Invoke(this, new FilterChangedEventArgs(oldFilter, FilterList));
         }
-        internal void FilterPopup_Closed(object sender, EventArgs e)
+        protected internal void FilterPopup_Closed(object sender, EventArgs e)
         {
             List<FilterValue> oldFilter = (from FilterValue thisFilter in FilterList
                                            select new FilterValue(thisFilter.PropertyName, thisFilter.FilteredValues)).ToList();
@@ -504,7 +511,7 @@ namespace BetterDataGrid
                 FilterChanged?.Invoke(this, new FilterChangedEventArgs(oldFilter, FilterList));
         }
 
-        internal void FilterButton_Click(object sender, RoutedEventArgs e)
+        protected internal void FilterButton_Click(object sender, RoutedEventArgs e)
         {
             //TODO rewrite to use the listview directly instead of the property to see if that fixes the disappearing all button
             Button filterButton = (Button)sender;

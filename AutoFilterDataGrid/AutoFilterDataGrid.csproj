@@ -15,8 +15,8 @@
     <RepositoryUrl>https://github.com/jbruflodt/AutoFilterDataGrid.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyVersion>1.0.19259.2027</AssemblyVersion>
-    <FileVersion>1.0.19259.2027</FileVersion>
+    <AssemblyVersion>1.0.19252.1400</AssemblyVersion>
+    <FileVersion>1.0.19252.1400</FileVersion>
     <Version>$(AssemblyVersion)</Version>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
@@ -31,7 +31,6 @@
     <AssemblyFileVersionSettings>IncrementOnDemand.IncrementOnDemand.DateStamp.TimeStamp</AssemblyFileVersionSettings>
     <AssemblyInfoVersionSettings>IncrementOnDemand.IncrementOnDemand.DateStamp.TimeStamp</AssemblyInfoVersionSettings>
     <LangVersion>7.3</LangVersion>
-    <RootNamespace>BetterDataGrid</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>

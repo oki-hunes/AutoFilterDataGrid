@@ -24,6 +24,7 @@ namespace AutoFilterDataGridTest
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         private DataTable testTable;
+        private int testInt;
         public DataTable TestTable
         {
             get
@@ -54,7 +55,19 @@ namespace AutoFilterDataGridTest
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            
+            //autoFilterDataGrid.InvalidateVisual();
+        }
 
+        private void AutoFilterDataGrid_Loaded(object sender, RoutedEventArgs e)
+        {
+            //if (testInt <= 0)
+            //{
+            //    testInt++;
+            //    grid.Children.Remove(autoFilterDataGrid);
+            //    grid.Children.Add(autoFilterDataGrid);
+                
+            //}
         }
     }
 }

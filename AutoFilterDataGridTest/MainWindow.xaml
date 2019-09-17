@@ -15,8 +15,8 @@
         <KeyBinding Command="ApplicationCommands.Delete" Key="Delete" CommandTarget="{Binding ElementName=autoFilterDataGrid, Mode=OneWay}"/>
         <KeyBinding Command="ApplicationCommands.Cut" Key="X" Modifiers="Ctrl" CommandTarget="{Binding ElementName=autoFilterDataGrid, Mode=OneWay}"/>
     </Window.InputBindings>
-    <Grid>
-        <AutoFilterDataGrid:AutoFilterDataGrid x:Name="autoFilterDataGrid" ItemsSource="{Binding TestTable, ElementName=window}" AutoGenerateColumns="False" SelectionUnit="CellOrRowHeader">
+    <Grid Name="grid">
+        <AutoFilterDataGrid:AutoFilterDataGrid x:Name="autoFilterDataGrid" ItemsSource="{Binding TestTable, ElementName=window}" AutoGenerateColumns="False" SelectionUnit="CellOrRowHeader" Loaded="AutoFilterDataGrid_Loaded">
             <AutoFilterDataGrid:AutoFilterDataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Property1}" Header="Property1"/>
                 <DataGridCheckBoxColumn Binding="{Binding Property2}" Header="Property2"/>

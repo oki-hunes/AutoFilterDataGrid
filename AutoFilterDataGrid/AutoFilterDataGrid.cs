@@ -47,6 +47,7 @@ namespace BetterDataGrid
         public event FilterChangedEventHandler FilterChanged;
         public event CannotDeleteValueEventHandler CannotDeleteValue;
         private DataGridColumnHeadersPresenter headersPresenter;
+        private int testInt;
         [Category("Columns")]
         public bool CanUserFilterData
         {
@@ -325,15 +326,31 @@ namespace BetterDataGrid
                     {
                         thisHeader.Click -= DataGridColumnHeader_Click;
                         thisHeader.MouseDoubleClick -= DataGridColumnHeader_MouseDoubleClick;
-                        (thisHeader.Template.FindName("FilterButton", thisHeader) as Button).Click -= FilterButton_Click;
-                        (thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup).Closed -= FilterPopup_Closed;
+                        ButtonBase tempButton = thisHeader.Template.FindName("FilterButton", thisHeader) as ButtonBase;
+                        if(tempButton != null)
+                        {
+                            tempButton.Click -= FilterButton_Click;
+                        }
+                        Popup tempPopup = thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup;
+                        if (tempPopup != null)
+                        {
+                            tempPopup.Closed -= FilterPopup_Closed;
+                        }
                     }
                     finally
                     {
                         thisHeader.Click += DataGridColumnHeader_Click;
                         thisHeader.MouseDoubleClick += DataGridColumnHeader_MouseDoubleClick;
-                        (thisHeader.Template.FindName("FilterButton", thisHeader) as Button).Click += FilterButton_Click;
-                        (thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup).Closed += FilterPopup_Closed;
+                        ButtonBase tempButton = thisHeader.Template.FindName("FilterButton", thisHeader) as ButtonBase;
+                        if (tempButton != null)
+                        {
+                            tempButton.Click += FilterButton_Click;
+                        }
+                        Popup tempPopup = thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup;
+                        if (tempPopup != null)
+                        {
+                            tempPopup.Closed += FilterPopup_Closed;
+                        }
                     }
                 }
             }
@@ -449,6 +466,12 @@ namespace BetterDataGrid
             }
             if (CanUserFilterData)
                 this.Items.Filter = new Predicate<object>(this.Contains);
+            if (headersPresenter == null)
+            {
+                headersPresenter = FindDataGridColumnHeadersPresenter(this);
+                if (headersPresenter != null)
+                    headersPresenter.LayoutUpdated += HeadersPresenter_LayoutUpdated;
+            }
         }
         private void GenerateFilterList()
         {
@@ -780,6 +803,8 @@ namespace BetterDataGrid
         private DataGridColumnHeadersPresenter FindDataGridColumnHeadersPresenter(FrameworkElement parent)
         {
             PropertyInfo visualChildCountProperty = typeof(FrameworkElement).GetProperty("VisualChildrenCount", BindingFlags.NonPublic | BindingFlags.Instance);
+            PropertyInfo logicalChildrenProperty = typeof(FrameworkElement).GetProperty("LogicalChildren", BindingFlags.NonPublic | BindingFlags.Instance);
+            PropertyInfo hasLogicalChildrenProperty = typeof(FrameworkElement).GetProperty("HasLogicalChildren", BindingFlags.NonPublic | BindingFlags.Instance);
             MethodInfo getVisualChildMethod = typeof(FrameworkElement).GetMethod("GetVisualChild", BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(int) }, null);
             for (int x = 0; x < (int)visualChildCountProperty.GetValue(parent); x++)
             {
@@ -790,7 +815,27 @@ namespace BetterDataGrid
                 }
                 else if(child is FrameworkElement)
                 {
-                    return FindDataGridColumnHeadersPresenter(child as FrameworkElement);
+                    DataGridColumnHeadersPresenter ret = FindDataGridColumnHeadersPresenter(child as FrameworkElement);
+                    if (ret != null)
+                        return ret;
+                }
+            }
+            if((bool)hasLogicalChildrenProperty.GetValue(parent) == true)
+            {
+                IEnumerator childEnumerator = (logicalChildrenProperty.GetValue(parent) as IEnumerator);
+                while(childEnumerator.MoveNext())
+                {
+                    if (childEnumerator.Current is DataGridColumnHeadersPresenter)
+                    {
+                        return childEnumerator.Current as DataGridColumnHeadersPresenter;
+                    }
+                    else if(childEnumerator.Current is FrameworkElement)
+                    {
+                        DataGridColumnHeadersPresenter ret = FindDataGridColumnHeadersPresenter(childEnumerator.Current as FrameworkElement);
+                        if(ret != null)
+                            return ret;
+                    }
+
                 }
             }
             return null;

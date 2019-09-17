@@ -21,6 +21,7 @@ using System.Globalization;
 
 namespace BetterDataGrid
 {
+    [TemplatePart(Name = "PART_ColumnHeadersPresenter", Type = typeof(DataGridColumnHeadersPresenter))]
     public class AutoFilterDataGrid : DataGrid, INotifyPropertyChanged
     {
         static AutoFilterDataGrid()
@@ -45,6 +46,7 @@ namespace BetterDataGrid
         public new event DataGridSortingEventHandler Sorting;
         public event FilterChangedEventHandler FilterChanged;
         public event CannotDeleteValueEventHandler CannotDeleteValue;
+        private DataGridColumnHeadersPresenter headersPresenter;
         [Category("Columns")]
         public bool CanUserFilterData
         {
@@ -755,6 +757,43 @@ namespace BetterDataGrid
             {
                 return value as IList;
             }
+        }
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            base.OnRender(drawingContext);
+            if (headersPresenter == null)
+                UpdateEventHandlers();
+        }
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+            headersPresenter = FindDataGridColumnHeadersPresenter(this);
+            if(headersPresenter != null)
+                headersPresenter.LayoutUpdated += HeadersPresenter_LayoutUpdated;
+        }
+
+        private void HeadersPresenter_LayoutUpdated(object sender, EventArgs e)
+        {
+            UpdateEventHandlers();
+        }
+
+        private DataGridColumnHeadersPresenter FindDataGridColumnHeadersPresenter(FrameworkElement parent)
+        {
+            PropertyInfo visualChildCountProperty = typeof(FrameworkElement).GetProperty("VisualChildrenCount", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo getVisualChildMethod = typeof(FrameworkElement).GetMethod("GetVisualChild", BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(int) }, null);
+            for (int x = 0; x < (int)visualChildCountProperty.GetValue(parent); x++)
+            {
+                object child = getVisualChildMethod.Invoke(parent, new object[] { x });
+                if(child is DataGridColumnHeadersPresenter && (child as DataGridColumnHeadersPresenter).Name == "PART_ColumnHeadersPresenter")
+                {
+                    return child as DataGridColumnHeadersPresenter;
+                }
+                else if(child is FrameworkElement)
+                {
+                    return FindDataGridColumnHeadersPresenter(child as FrameworkElement);
+                }
+            }
+            return null;
         }
     }
     public class CannotDeleteValueEventArgs : EventArgs

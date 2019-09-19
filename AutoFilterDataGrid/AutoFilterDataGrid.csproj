@@ -15,8 +15,8 @@
     <RepositoryUrl>https://github.com/jbruflodt/AutoFilterDataGrid.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyVersion>1.0.19260.1917</AssemblyVersion>
-    <FileVersion>1.0.19260.1917</FileVersion>
+    <AssemblyVersion>1.0.19262.1616</AssemblyVersion>
+    <FileVersion>1.0.19262.1616</FileVersion>
     <Version>$(AssemblyVersion)</Version>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>

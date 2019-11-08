@@ -99,8 +99,15 @@ namespace BetterDataGrid
                 Mode = BindingMode.TwoWay
             });
             this.CommandBindings.Add(new CommandBinding(ApplicationCommands.Cut, new ExecutedRoutedEventHandler(ExecutedCut), new CanExecuteRoutedEventHandler(CanExecuteCut)));
+            this.Initialized += AutoFilterDataGrid_Initialized;
             //ItemsSource = new ArrayList();
         }
+
+        private void AutoFilterDataGrid_Initialized(object sender, EventArgs e)
+        {
+            GenerateFilterList();
+        }
+
         private void CanExecuteCut(object sender, CanExecuteRoutedEventArgs e)
         {
             OnCanExecuteCut(e);
@@ -454,7 +461,7 @@ namespace BetterDataGrid
         }
         private void AutoFilterDataGridLoaded(object sender, RoutedEventArgs e)
         {
-            GenerateFilterList();
+            this.Columns.CollectionChanged -= Columns_CollectionChanged;
             this.Columns.CollectionChanged += Columns_CollectionChanged;
             try
             {
@@ -470,7 +477,10 @@ namespace BetterDataGrid
             {
                 headersPresenter = FindDataGridColumnHeadersPresenter(this);
                 if (headersPresenter != null)
+                {
+                    headersPresenter.LayoutUpdated -= HeadersPresenter_LayoutUpdated;
                     headersPresenter.LayoutUpdated += HeadersPresenter_LayoutUpdated;
+                }
             }
         }
         private void GenerateFilterList()

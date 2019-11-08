@@ -47,7 +47,7 @@ namespace BetterDataGrid
         public event FilterChangedEventHandler FilterChanged;
         public event CannotDeleteValueEventHandler CannotDeleteValue;
         private DataGridColumnHeadersPresenter headersPresenter;
-        private int testInt;
+        //private int testInt;
         [Category("Columns")]
         public bool CanUserFilterData
         {
@@ -106,6 +106,8 @@ namespace BetterDataGrid
         private void AutoFilterDataGrid_Initialized(object sender, EventArgs e)
         {
             GenerateFilterList();
+            if (CanUserFilterData)
+                this.Items.Filter = new Predicate<object>(this.Contains);
         }
 
         private void CanExecuteCut(object sender, CanExecuteRoutedEventArgs e)
@@ -333,13 +335,11 @@ namespace BetterDataGrid
                     {
                         thisHeader.Click -= DataGridColumnHeader_Click;
                         thisHeader.MouseDoubleClick -= DataGridColumnHeader_MouseDoubleClick;
-                        ButtonBase tempButton = thisHeader.Template.FindName("FilterButton", thisHeader) as ButtonBase;
-                        if(tempButton != null)
+                        if (thisHeader.Template.FindName("FilterButton", thisHeader) is ButtonBase tempButton)
                         {
                             tempButton.Click -= FilterButton_Click;
                         }
-                        Popup tempPopup = thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup;
-                        if (tempPopup != null)
+                        if (thisHeader.Template.FindName("FilterPopup", thisHeader) is Popup tempPopup)
                         {
                             tempPopup.Closed -= FilterPopup_Closed;
                         }
@@ -348,13 +348,11 @@ namespace BetterDataGrid
                     {
                         thisHeader.Click += DataGridColumnHeader_Click;
                         thisHeader.MouseDoubleClick += DataGridColumnHeader_MouseDoubleClick;
-                        ButtonBase tempButton = thisHeader.Template.FindName("FilterButton", thisHeader) as ButtonBase;
-                        if (tempButton != null)
+                        if (thisHeader.Template.FindName("FilterButton", thisHeader) is ButtonBase tempButton)
                         {
                             tempButton.Click += FilterButton_Click;
                         }
-                        Popup tempPopup = thisHeader.Template.FindName("FilterPopup", thisHeader) as Popup;
-                        if (tempPopup != null)
+                        if (thisHeader.Template.FindName("FilterPopup", thisHeader) is Popup tempPopup)
                         {
                             tempPopup.Closed += FilterPopup_Closed;
                         }
@@ -471,8 +469,6 @@ namespace BetterDataGrid
             {
                 UpdateEventHandlers();
             }
-            if (CanUserFilterData)
-                this.Items.Filter = new Predicate<object>(this.Contains);
             if (headersPresenter == null)
             {
                 headersPresenter = FindDataGridColumnHeadersPresenter(this);

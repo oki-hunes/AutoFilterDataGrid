@@ -139,7 +139,8 @@ namespace BetterDataGrid
             List<object> fullRows = new List<object>();
             foreach(object thisItem in this.SelectedItems)
             {
-                if (this.ItemContainerGenerator.ContainerFromItem(thisItem) is DataGridRow row && row.IsSelected && thisItem.GetType().ToString() != "MS.Internal.NamedObject")
+                //this.ItemContainerGenerator.ContainerFromItem(thisItem) is DataGridRow row && row.IsSelected && 
+                if (thisItem.GetType().ToString() != "MS.Internal.NamedObject")
                 {
                     fullRows.Add(thisItem);
                 }
@@ -207,22 +208,34 @@ namespace BetterDataGrid
             {
                 if (IsNumericType(valueType) && !canBeNull)
                     return new object[] { item, propertyPath.Path, 0 };
+                else if (canBeNull)
+                    return new object[] { item, propertyPath.Path, null };
+                else if (Nullable.GetUnderlyingType(valueType) != null)
+                    return new object[] { item, propertyPath.Path, valueType.GetConstructor(new Type[] { Nullable.GetUnderlyingType(valueType) }).Invoke(new object[] { null }) };
                 else
-                    return new object[] { item, propertyPath.Path, canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
+                    return new object[] { item, propertyPath.Path, valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
             }
             else if (item.GetType() == typeof(DataRowView) || item.GetType().IsSubclassOf(typeof(DataRowView)))
             {
                 if (IsNumericType(valueType) && !canBeNull)
                     return new object[] { (item as DataRowView).Row, propertyPath.Path, 0 };
+                else if (canBeNull)
+                    return new object[] { (item as DataRowView).Row, propertyPath.Path, null };
+                else if (Nullable.GetUnderlyingType(valueType) != null)
+                    return new object[] { (item as DataRowView).Row, propertyPath.Path, valueType.GetConstructor(new Type[] { Nullable.GetUnderlyingType(valueType) }).Invoke(new object[] { null }) };
                 else
-                    return new object[] { (item as DataRowView).Row, propertyPath.Path, canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
+                    return new object[] { (item as DataRowView).Row, propertyPath.Path, valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
             }
             else
             {
-                if(IsNumericType(valueType) && !canBeNull)
+                if (IsNumericType(valueType) && !canBeNull)
                     return new object[] { 0 };
+                else if (canBeNull)
+                    return new object[] { null };
+                else if (Nullable.GetUnderlyingType(valueType) != null)
+                    return new object[] { valueType.GetConstructor(new Type[] { Nullable.GetUnderlyingType(valueType) }).Invoke(new object[] { null }) };
                 else
-                    return new object[] { canBeNull ? null : valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
+                    return new object[] { valueType.GetConstructor(Array.Empty<Type>()).Invoke(Array.Empty<object>()) };
             }
         }
         protected void DeleteCellValue(DataGridCellInfo thisCell)

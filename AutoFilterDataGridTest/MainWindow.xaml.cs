@@ -34,14 +34,16 @@ namespace AutoFilterDataGridTest
         }
         public MainWindow()
         {
+            Random random = new Random();
             testTable = new DataTable();
             testTable.Columns.Add("Property1");
             testTable.Columns.Add("Property2");
-            testTable.Columns.Add("Property3");
+            testTable.Columns.Add("Property3", typeof(int));
             SampleDataSource testData = new SampleDataSource();
-            foreach(Item test in testData.Collection)
+            for(int x = 0; x < 10000; x++)
             {
-                testTable.LoadDataRow(new object[] { test.Property1, test.Property2, DBNull.Value }, true);
+                int recordNum = random.Next(0, testData.Collection.Count - 1);
+                testTable.LoadDataRow(new object[] { testData.Collection[recordNum].Property1, testData.Collection[recordNum].Property2, x }, true);
             }
             InitializeComponent();
         }

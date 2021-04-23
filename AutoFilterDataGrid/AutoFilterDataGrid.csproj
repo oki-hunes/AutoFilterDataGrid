@@ -15,8 +15,8 @@
     <RepositoryUrl>https://github.com/jbruflodt/AutoFilterDataGrid.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <NeutralLanguage>en-US</NeutralLanguage>
-    <AssemblyVersion>1.0.19315.1608</AssemblyVersion>
-    <FileVersion>1.0.19315.1608</FileVersion>
+    <AssemblyVersion>1.0.21113.1932</AssemblyVersion>
+    <FileVersion>1.0.21113.1932</FileVersion>
     <Version>$(AssemblyVersion)</Version>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
@@ -38,7 +38,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Package|AnyCPU'">
     <GenerateSerializationAssemblies>On</GenerateSerializationAssemblies>

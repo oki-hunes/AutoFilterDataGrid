@@ -554,7 +554,8 @@ namespace BetterDataGrid
             Button filterButton = (Button)sender;
             int columnIndex = ((DataGridColumnHeader)filterButton.TemplatedParent).DisplayIndex;
             FilterValue thisColumnFilter = GetFilterValueFromColumn((DataGridBoundColumn)this.Columns[columnIndex]) ?? new FilterValue();
-            List<string> columnValues = new List<string>();
+            List<object> columnValues = new List<object>();
+            List<string> columnValueStrings = new List<string>();
             CheckBox allCheck = new CheckBox
             {
                 Content = "All",
@@ -573,31 +574,39 @@ namespace BetterDataGrid
                 {
                     if (item.GetType().ToString() != "MS.Internal.NamedObject")
                     {
-                        string thisValue = "";
+                        object CellValue;
                         if (item.GetType() == typeof(DataRow) || item.GetType().IsSubclassOf(typeof(DataRow)))
                         {
-                            object CellValue = ((DataRow)item).Field<object>(propertyPath.Path);
-                            if (CellValue != null)
-                                thisValue = CellValue.ToString();
+                            CellValue = ((DataRow)item).Field<object>(propertyPath.Path);
                         }
                         else if (item.GetType() == typeof(DataRowView) || item.GetType().IsSubclassOf(typeof(DataRowView)))
                         {
-                            object CellValue = ((DataRowView)item).Row.Field<object>(propertyPath.Path);
-                            if (CellValue != null)
-                                thisValue = CellValue.ToString();
+                            CellValue = ((DataRowView)item).Row.Field<object>(propertyPath.Path);
                         }
                         else
                         {
-                            object CellValue = item.GetType().GetProperty(propertyPath.Path).GetMethod.Invoke(item, Array.Empty<object>());
-                            if (CellValue != null)
-                                thisValue = CellValue.ToString();
+                            CellValue = item.GetType().GetProperty(propertyPath.Path).GetMethod.Invoke(item, Array.Empty<object>());
                         }
-                        if (!columnValues.Contains(thisValue))
-                            columnValues.Add(thisValue);
+                        if (CellValue != null && !columnValues.Contains(CellValue))
+                            columnValues.Add(CellValue);
                     }
                 }
-                columnValues.Sort();
-                foreach (string thisValue in columnValues)
+                if(columnValues.Count > 0 && columnValues.All(thisValue => thisValue.GetType() == columnValues[0].GetType()) && columnValues[0].GetType().GetInterfaces().Contains(typeof(IComparable)))
+                {
+                    Type castType = columnValues[0].GetType();
+                    columnValues.Sort(delegate (object x, object y)
+                    {
+                        dynamic dx = Convert.ChangeType(x, castType);
+                        return dx.CompareTo(y);
+                    });
+                    columnValueStrings = columnValues.ConvertAll(convertValue => convertValue.ToString());
+                }
+                else
+                {
+                    columnValueStrings = columnValues.ConvertAll(convertValue => convertValue.ToString());
+                    columnValueStrings.Sort();
+                }
+                foreach (string thisValue in columnValueStrings.Distinct())
                 {
                     CheckBox tempCheck = new CheckBox
                     {

@@ -564,6 +564,7 @@ namespace BetterDataGrid
             allCheck.Checked += AllCheckBox_Checked;
             allCheck.Unchecked += AllCheckBox_Unchecked;
             Popup filterPopup = (Popup)filterButton.Tag;
+            filterPopup.Name = "FilterPopup";
             ListBox popupContent = (ListBox)filterPopup.FindName("FilterList");
             popupContent.Items.Clear();
             popupContent.Items.Add(allCheck);
@@ -695,10 +696,33 @@ namespace BetterDataGrid
             }
              (popupContent.Items[0] as CheckBox).IsChecked = all ? false : new bool?();
         }
+        private static bool HasFilterPopupParent(FrameworkElement element)
+        {
+            if (element is null)
+                return false;
+            DependencyObject logicalParent = LogicalTreeHelper.GetParent(element);
+            DependencyObject visualParent = VisualTreeHelper.GetParent(element);
+            if (IsFilterPopup(logicalParent) || IsFilterPopup(visualParent))
+                return true;
+            else if (logicalParent is FrameworkElement && HasFilterPopupParent(logicalParent as FrameworkElement))
+                return true;
+            else if (visualParent is FrameworkElement && HasFilterPopupParent(visualParent as FrameworkElement))
+                return true;
+            else
+                return false;
+        }
+        private static bool IsFilterPopup(DependencyObject element)
+        {
+            if (element is Popup && (element as Popup).Name == "FilterPopup")
+                return true;
+            else
+                return false;
+        }
         internal void DataGridColumnHeader_Click(object sender, RoutedEventArgs e)
         {
+            
             System.Windows.Controls.Primitives.DataGridColumnHeader columnHeader = (System.Windows.Controls.Primitives.DataGridColumnHeader)sender;
-            if (this.CanSelectMultipleItems && (this.SelectionUnit == DataGridSelectionUnit.Cell || this.SelectionUnit == DataGridSelectionUnit.CellOrRowHeader) && (e.OriginalSource.GetType() != typeof(Button) || (e.OriginalSource as Button).Name != "PART_FilterButton"))
+            if (this.CanSelectMultipleItems && (this.SelectionUnit == DataGridSelectionUnit.Cell || this.SelectionUnit == DataGridSelectionUnit.CellOrRowHeader) && (!(e.OriginalSource is ButtonBase) || (e.OriginalSource as ButtonBase).Name != "PART_FilterButton") && (!(e.OriginalSource is FrameworkElement) || !HasFilterPopupParent(e.OriginalSource as FrameworkElement)))
             {
                 if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl) && !Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
                     this.SelectedCells.Clear();

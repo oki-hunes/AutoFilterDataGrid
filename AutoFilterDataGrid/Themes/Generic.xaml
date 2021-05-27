@@ -77,7 +77,7 @@
                                                 <ColumnDefinition Width="20"/>
                                             </Grid.ColumnDefinitions>
                                             <ContentPresenter ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="5,5.5" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" UseLayoutRounding="True" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                            <Button x:Name="FilterButton" BorderBrush="{x:Null}" Content="" Grid.Column="1" Foreground="{x:Null}" Focusable="False" HorizontalAlignment="Right" Tag="{Binding ElementName=FilterPopup, Mode=OneWay}" UseLayoutRounding="True" VerticalAlignment="Center" Width="20" IsHitTestVisible="{Binding IsHitTestVisible, RelativeSource={RelativeSource TemplatedParent}}">
+                                            <Button x:Name="PART_FilterButton" BorderBrush="{x:Null}" Content="" Grid.Column="1" Foreground="{x:Null}" Focusable="False" HorizontalAlignment="Right" Tag="{Binding ElementName=FilterPopup, Mode=OneWay}" UseLayoutRounding="True" VerticalAlignment="Center" Width="20" IsHitTestVisible="{Binding IsHitTestVisible, RelativeSource={RelativeSource TemplatedParent}}">
                                                 <Button.Background>
                                                     <ImageBrush ImageSource="/AutoFilterDataGrid;component/FilteredObject13400_128x128.png"/>
                                                 </Button.Background>

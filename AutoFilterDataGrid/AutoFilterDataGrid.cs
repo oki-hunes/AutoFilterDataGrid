@@ -348,7 +348,7 @@ namespace BetterDataGrid
                     {
                         thisHeader.Click -= DataGridColumnHeader_Click;
                         thisHeader.MouseDoubleClick -= DataGridColumnHeader_MouseDoubleClick;
-                        if (thisHeader.Template.FindName("FilterButton", thisHeader) is ButtonBase tempButton)
+                        if (thisHeader.Template.FindName("PART_FilterButton", thisHeader) is ButtonBase tempButton)
                         {
                             tempButton.Click -= FilterButton_Click;
                         }
@@ -361,7 +361,7 @@ namespace BetterDataGrid
                     {
                         thisHeader.Click += DataGridColumnHeader_Click;
                         thisHeader.MouseDoubleClick += DataGridColumnHeader_MouseDoubleClick;
-                        if (thisHeader.Template.FindName("FilterButton", thisHeader) is ButtonBase tempButton)
+                        if (thisHeader.Template.FindName("PART_FilterButton", thisHeader) is ButtonBase tempButton)
                         {
                             tempButton.Click += FilterButton_Click;
                         }
@@ -698,7 +698,7 @@ namespace BetterDataGrid
         internal void DataGridColumnHeader_Click(object sender, RoutedEventArgs e)
         {
             System.Windows.Controls.Primitives.DataGridColumnHeader columnHeader = (System.Windows.Controls.Primitives.DataGridColumnHeader)sender;
-            if (this.CanSelectMultipleItems && (this.SelectionUnit == DataGridSelectionUnit.Cell || this.SelectionUnit == DataGridSelectionUnit.CellOrRowHeader) && (e.OriginalSource.GetType() != typeof(Button) || (e.OriginalSource as Button).Name != "FilterButton"))
+            if (this.CanSelectMultipleItems && (this.SelectionUnit == DataGridSelectionUnit.Cell || this.SelectionUnit == DataGridSelectionUnit.CellOrRowHeader) && (e.OriginalSource.GetType() != typeof(Button) || (e.OriginalSource as Button).Name != "PART_FilterButton"))
             {
                 if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl) && !Keyboard.IsKeyDown(Key.LeftShift) && !Keyboard.IsKeyDown(Key.RightShift))
                     this.SelectedCells.Clear();

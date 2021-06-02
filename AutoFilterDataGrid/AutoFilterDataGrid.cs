@@ -47,6 +47,7 @@ namespace BetterDataGrid
         public event FilterChangedEventHandler FilterChanged;
         public event CannotDeleteValueEventHandler CannotDeleteValue;
         private DataGridColumnHeadersPresenter headersPresenter;
+        private bool supressSelectedCellsChangedEvent;
         //private int testInt;
         [Category("Columns")]
         public bool CanUserFilterData
@@ -89,6 +90,7 @@ namespace BetterDataGrid
 
         public AutoFilterDataGrid() : base()
         {
+            supressSelectedCellsChangedEvent = false;
             filterList = new List<FilterValue>();
             this.Loaded += AutoFilterDataGridLoaded;
             SetBinding(ItemsControl.ItemsSourceProperty, new Binding()
@@ -773,12 +775,20 @@ namespace BetterDataGrid
         }
         private void SelectColumn(DataGridColumn column)
         {
+            List<DataGridCellInfo> addedCells = new List<DataGridCellInfo>();
+            //supressing this event so it isn't called on ever iteration of the foreach loop. We'll call it manually at the end.
+            supressSelectedCellsChangedEvent = true;
             foreach (object item in this.Items)
             {
                 DataGridCellInfo dataGridCellInfo = new DataGridCellInfo(item, column);
                 if (!this.SelectedCells.Contains(dataGridCellInfo))
+                {
                     this.SelectedCells.Add(dataGridCellInfo);
+                    addedCells.Add(dataGridCellInfo);
+                }
             }
+            supressSelectedCellsChangedEvent = false;
+            OnSelectedCellsChanged(new SelectedCellsChangedEventArgs(addedCells, new List<DataGridCellInfo>()));
         }
         internal void DataGridColumnHeader_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -891,6 +901,12 @@ namespace BetterDataGrid
                 }
             }
             return null;
+        }
+
+        protected override void OnSelectedCellsChanged(SelectedCellsChangedEventArgs e)
+        {
+            if(!supressSelectedCellsChangedEvent)
+                base.OnSelectedCellsChanged(e);
         }
     }
     public class CannotDeleteValueEventArgs : EventArgs

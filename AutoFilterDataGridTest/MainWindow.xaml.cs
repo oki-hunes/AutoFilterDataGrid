@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System.Data;
 using System.ComponentModel;
 using Expression.Blend.SampleData.SampleDataSource;
+using AutoFilterDataGrid.Interfaces;
 
 namespace AutoFilterDataGridTest
 {
@@ -36,6 +37,8 @@ namespace AutoFilterDataGridTest
         {
             Random random = new Random();
             testTable = new DataTable();
+            TestDataGridColumn testColumn = new TestDataGridColumn();
+            testColumn.Binding = new Binding("Property1");
             testTable.Columns.Add("Property1");
             testTable.Columns.Add("Property2");
             testTable.Columns.Add("Property3", typeof(int));
@@ -71,5 +74,9 @@ namespace AutoFilterDataGridTest
                 
             //}
         }
+    }
+    public class TestDataGridColumn : DataGridTextColumn, IBindableColumn
+    {
+        Binding IBindableColumn.Binding { get => this.Binding as Binding; set =>  Binding = value; }
     }
 }

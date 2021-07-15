@@ -18,6 +18,7 @@ using System.Data;
 using System.Windows.Controls.Primitives;
 using System.Collections;
 using System.Globalization;
+using AutoFilterDataGrid.Interfaces;
 
 namespace BetterDataGrid
 {
@@ -242,7 +243,7 @@ namespace BetterDataGrid
         }
         protected void DeleteCellValue(DataGridCellInfo thisCell)
         {
-            PropertyPath propertyPath = ((thisCell.Column as DataGridBoundColumn).Binding as Binding).Path;
+            PropertyPath propertyPath = GetColumnBinding(thisCell.Column).Path;
             object[] invokeParams = Array.Empty<object>();
             MethodInfo setMethod;
             object invokeItem;
@@ -399,21 +400,25 @@ namespace BetterDataGrid
         {
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
-                foreach (DataGridBoundColumn thisColumn in e.NewItems)
+                foreach (DataGridColumn thisColumn in e.NewItems)
                 {
-                    if(thisColumn.DisplayIndex == filterList.Count)
-                        filterList.Add(new FilterValue(((Binding)thisColumn.Binding).Path.Path.ToString(), new List<string>()));
-                    else
-                        filterList.Insert(thisColumn.DisplayIndex, new FilterValue(((Binding)thisColumn.Binding).Path.Path.ToString(), new List<string>()));
+                    Binding columnBinding = GetColumnBinding(thisColumn);
+                    if (columnBinding != null)
+                    {
+                        if (thisColumn.DisplayIndex == filterList.Count)
+                            filterList.Add(new FilterValue(columnBinding.Path.Path.ToString(), new List<string>()));
+                        else
+                            filterList.Insert(thisColumn.DisplayIndex, new FilterValue(columnBinding.Path.Path.ToString(), new List<string>()));
+                    }
                 }
                 UpdateEventHandlers();
                 
             }
             if (e.Action == NotifyCollectionChangedAction.Remove)
             {
-                foreach (DataGridBoundColumn thisColumn in e.OldItems)
+                foreach (DataGridColumn thisColumn in e.OldItems)
                 {
-                    FilterValue thisColumnFilter = GetFilterValueFromColumn((DataGridBoundColumn)thisColumn);
+                    FilterValue thisColumnFilter = GetFilterValueFromColumn(thisColumn);
                     if(thisColumnFilter != null)
                         filterList.Remove(thisColumnFilter);
                 }
@@ -499,9 +504,10 @@ namespace BetterDataGrid
             filterList = new List<FilterValue>();
             foreach (DataGridColumn thisColumn in this.Columns)
             {
-                if (typeof(DataGridBoundColumn).IsAssignableFrom(thisColumn.GetType()) && (thisColumn as DataGridBoundColumn).Binding != null)
+                Binding columnBinding = GetColumnBinding(thisColumn);
+                if (columnBinding != null)
                 {
-                    PropertyPath propertyPath = ((Binding)(thisColumn as DataGridBoundColumn).Binding).Path;
+                    PropertyPath propertyPath = columnBinding.Path;
                     if (propertyPath != null && propertyPath.Path != null)
                         filterList.Add(new FilterValue(propertyPath.Path.ToString(), new List<string>()));
                 }
@@ -530,7 +536,8 @@ namespace BetterDataGrid
             int columnIndex = ((DataGridColumnHeader)filterPopup.TemplatedParent).DisplayIndex;
             FilterValue thisColumnFilter = filterList.Find((thisFilter) =>
             {
-                if (thisFilter != null && thisFilter.PropertyName == ((Binding)((DataGridBoundColumn)this.Columns[columnIndex]).Binding).Path.Path.ToString())
+                Binding columnBinding = GetColumnBinding(((DataGridColumn)this.Columns[columnIndex]));
+                if (thisFilter != null && columnBinding != null && thisFilter.PropertyName == columnBinding.Path.Path.ToString())
                     return true;
                 else
                     return false;
@@ -555,7 +562,7 @@ namespace BetterDataGrid
             //TODO rewrite to use the listview directly instead of the property to see if that fixes the disappearing all button
             Button filterButton = (Button)sender;
             int columnIndex = ((DataGridColumnHeader)filterButton.TemplatedParent).DisplayIndex;
-            FilterValue thisColumnFilter = GetFilterValueFromColumn((DataGridBoundColumn)this.Columns[columnIndex]) ?? new FilterValue();
+            FilterValue thisColumnFilter = GetFilterValueFromColumn((DataGridColumn)this.Columns[columnIndex]) ?? new FilterValue();
             List<object> columnValues = new List<object>();
             List<string> columnValueStrings = new List<string>();
             CheckBox allCheck = new CheckBox
@@ -572,7 +579,7 @@ namespace BetterDataGrid
             popupContent.Items.Add(allCheck);
             if (((this.ItemsSource ?? this.Items) as IList).Count > 0)
             {
-                PropertyPath propertyPath = ((Binding)((DataGridBoundColumn)this.Columns[columnIndex]).Binding).Path;
+                PropertyPath propertyPath = GetColumnBinding(((DataGridColumn)this.Columns[columnIndex])).Path;
                 foreach (object item in this.ItemsSource ?? this.Items)
                 {
                     if (item.GetType().ToString() != "MS.Internal.NamedObject")
@@ -810,12 +817,18 @@ namespace BetterDataGrid
         {
             Sorting?.Invoke(this, eventArgs);
         }
-        private FilterValue GetFilterValueFromColumn(DataGridBoundColumn column)
+        private FilterValue GetFilterValueFromColumn(DataGridColumn column)
         {
-            foreach (FilterValue thisFilter in filterList)
+            Binding columnBinding = GetColumnBinding(column);
+            IBindableColumn interfaceColumn = column as IBindableColumn;
+            if (columnBinding != null)
             {
-                if (thisFilter.PropertyName == ((Binding)column.Binding).Path.Path.ToString())
-                    return thisFilter;
+                string propertyName = columnBinding.Path.Path.ToString();
+                foreach (FilterValue thisFilter in filterList)
+                {
+                    if (thisFilter.PropertyName == propertyName)
+                        return thisFilter;
+                }
             }
             return null;
         }
@@ -908,6 +921,19 @@ namespace BetterDataGrid
             if(!supressSelectedCellsChangedEvent)
                 base.OnSelectedCellsChanged(e);
         }
+        private Binding GetColumnBinding(object column)
+        {
+            if (column == null)
+                return null;
+            else if (typeof(DataGridComboBoxColumn).IsAssignableFrom(column.GetType()) && (column as DataGridComboBoxColumn).SelectedItemBinding != null && ((column as DataGridComboBoxColumn).SelectedItemBinding as Binding).Path != null)
+                return ((column as DataGridComboBoxColumn).SelectedItemBinding as Binding);
+            else if (typeof(IBindableColumn).IsAssignableFrom(column.GetType()) && (column as IBindableColumn).Binding != null && ((column as IBindableColumn).Binding as Binding).Path != null)
+                return ((column as IBindableColumn).Binding as Binding);
+            else if (typeof(DataGridBoundColumn).IsAssignableFrom(column.GetType()) && (column as DataGridBoundColumn).Binding != null && ((column as DataGridBoundColumn).Binding as Binding).Path != null)
+                return ((column as DataGridBoundColumn).Binding as Binding);
+            else
+                return null;
+        }
     }
     public class CannotDeleteValueEventArgs : EventArgs
     {
@@ -977,7 +1003,11 @@ namespace BetterDataGrid
         {
             if (value == null)
                 return false;
-            if (typeof(DataGridBoundColumn).IsAssignableFrom(value.GetType()) && (value as DataGridBoundColumn).Binding != null && ((value as DataGridBoundColumn).Binding as Binding).Path != null)
+            else if (typeof(DataGridBoundColumn).IsAssignableFrom(value.GetType()) && (value as DataGridBoundColumn).Binding != null && ((value as DataGridBoundColumn).Binding as Binding).Path != null)
+                return true;
+            else if (typeof(DataGridComboBoxColumn).IsAssignableFrom(value.GetType()) && (value as DataGridComboBoxColumn).SelectedItemBinding != null && ((value as DataGridComboBoxColumn).SelectedItemBinding as Binding).Path != null)
+                return true;
+            else if (typeof(IBindableColumn).IsAssignableFrom(value.GetType()) && (value as IBindableColumn).Binding != null && ((value as IBindableColumn).Binding as Binding).Path != null)
                 return true;
             else
                 return false;

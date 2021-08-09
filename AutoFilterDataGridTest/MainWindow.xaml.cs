@@ -41,9 +41,9 @@ namespace AutoFilterDataGridTest
             testColumn.Binding = new Binding("Property1");
             testTable.Columns.Add("Property1");
             testTable.Columns.Add("Property2");
-            testTable.Columns.Add("Property3", typeof(int));
+            testTable.Columns.Add("Property3", typeof(decimal));
             SampleDataSource testData = new SampleDataSource();
-            for(int x = 0; x < 10000; x++)
+            for(decimal x = 0; x < 10000; x++)
             {
                 int recordNum = random.Next(0, testData.Collection.Count - 1);
                 testTable.LoadDataRow(new object[] { testData.Collection[recordNum].Property1, testData.Collection[recordNum].Property2, x }, true);

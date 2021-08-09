@@ -266,7 +266,7 @@ namespace BetterDataGrid
                 valueType = thisCell.Item.GetType().GetProperty(propertyPath.Path).PropertyType;
                 invokeItem = thisCell.Item;
             }
-            if (valueType.IsValueType && Nullable.GetUnderlyingType(valueType) == null && valueType.GetConstructor(Array.Empty<Type>()) == null && !IsNumericType(thisCell.Item.GetType().GetProperty(propertyPath.Path).PropertyType))
+            if (valueType.IsValueType && Nullable.GetUnderlyingType(valueType) == null && valueType.GetConstructor(Array.Empty<Type>()) == null && !IsNumericType(valueType))
             {
                 if (CannotDeleteValue != null)
                     this.CannotDeleteValue.Invoke(this, new CannotDeleteValueEventArgs(thisCell.Item, propertyPath, valueType));

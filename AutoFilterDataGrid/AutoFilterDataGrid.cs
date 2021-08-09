@@ -206,11 +206,12 @@ namespace BetterDataGrid
         }
         private object[] GetInvokeParams(PropertyPath propertyPath, Type valueType, object item)
         {
+            Convert.ChangeType(0, valueType);
             bool canBeNull = !valueType.IsValueType;
             if (item.GetType() == typeof(DataRow) || item.GetType().IsSubclassOf(typeof(DataRow)))
             {
                 if (IsNumericType(valueType) && !canBeNull)
-                    return new object[] { item, propertyPath.Path, 0 };
+                    return new object[] { item, propertyPath.Path, Convert.ChangeType(0, valueType) };
                 else if (canBeNull)
                     return new object[] { item, propertyPath.Path, null };
                 else if (Nullable.GetUnderlyingType(valueType) != null)
@@ -221,7 +222,7 @@ namespace BetterDataGrid
             else if (item.GetType() == typeof(DataRowView) || item.GetType().IsSubclassOf(typeof(DataRowView)))
             {
                 if (IsNumericType(valueType) && !canBeNull)
-                    return new object[] { (item as DataRowView).Row, propertyPath.Path, 0 };
+                    return new object[] { (item as DataRowView).Row, propertyPath.Path, Convert.ChangeType(0, valueType) };
                 else if (canBeNull)
                     return new object[] { (item as DataRowView).Row, propertyPath.Path, null };
                 else if (Nullable.GetUnderlyingType(valueType) != null)
@@ -232,7 +233,7 @@ namespace BetterDataGrid
             else
             {
                 if (IsNumericType(valueType) && !canBeNull)
-                    return new object[] { 0 };
+                    return new object[] { Convert.ChangeType(0, valueType) };
                 else if (canBeNull)
                     return new object[] { null };
                 else if (Nullable.GetUnderlyingType(valueType) != null)

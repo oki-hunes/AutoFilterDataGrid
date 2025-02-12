@@ -542,10 +542,10 @@ namespace BetterDataGrid
             DataGridColumnHeader columnHeader = (DataGridColumnHeader)filterPopup.TemplatedParent;
             // filterPopup is Popuped => ItemsSource changed => TemplateParent is null => FilterPopup_Closed is called
             if( columnHeader == null )  return;
-            int columnIndex = columnHeader.DisplayIndex;
+            DataGridColumn column = columnHeader.Column;
             FilterValue thisColumnFilter = filterList.Find((thisFilter) =>
             {
-                Binding columnBinding = GetColumnBinding(((DataGridColumn)this.Columns[columnIndex]));
+                Binding columnBinding = GetColumnBinding(column);
                 if (thisFilter != null && columnBinding != null && thisFilter.PropertyName == columnBinding.Path.Path.ToString())
                     return true;
                 else
@@ -570,8 +570,8 @@ namespace BetterDataGrid
         {
             //TODO rewrite to use the listview directly instead of the property to see if that fixes the disappearing all button
             Button filterButton = (Button)sender;
-            int columnIndex = ((DataGridColumnHeader)filterButton.TemplatedParent).DisplayIndex;
-            FilterValue thisColumnFilter = GetFilterValueFromColumn((DataGridColumn)this.Columns[columnIndex]) ?? new FilterValue();
+            DataGridColumn column = ((DataGridColumnHeader)filterButton.TemplatedParent).Column;
+            FilterValue thisColumnFilter = GetFilterValueFromColumn(column) ?? new FilterValue();
             List<object> columnValues = new List<object>();
             List<string> columnValueStrings = new List<string>();
             CheckBox allCheck = new CheckBox
@@ -588,7 +588,7 @@ namespace BetterDataGrid
             popupContent.Items.Add(allCheck);
             if (((this.ItemsSource ?? this.Items) as IList).Count > 0)
             {
-                PropertyPath propertyPath = GetColumnBinding(((DataGridColumn)this.Columns[columnIndex])).Path;
+                PropertyPath propertyPath = GetColumnBinding(column).Path;
                 foreach (object item in this.ItemsSource ?? this.Items)
                 {
                     if (item.GetType().ToString() != "MS.Internal.NamedObject")

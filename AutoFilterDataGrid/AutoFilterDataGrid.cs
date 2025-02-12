@@ -542,6 +542,7 @@ namespace BetterDataGrid
             DataGridColumnHeader columnHeader = (DataGridColumnHeader)filterPopup.TemplatedParent;
             // filterPopup is Popuped => ItemsSource changed => TemplateParent is null => FilterPopup_Closed is called
             if( columnHeader == null )  return;
+            int columnIndex = columnHeader.DisplayIndex;
             FilterValue thisColumnFilter = filterList.Find((thisFilter) =>
             {
                 Binding columnBinding = GetColumnBinding(((DataGridColumn)this.Columns[columnIndex]));

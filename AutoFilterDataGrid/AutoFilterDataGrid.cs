@@ -415,7 +415,7 @@ namespace BetterDataGrid
                 UpdateEventHandlers();
                 
             }
-            if (e.Action == NotifyCollectionChangedAction.Remove)
+            else if (e.Action == NotifyCollectionChangedAction.Remove)
             {
                 foreach (DataGridColumn thisColumn in e.OldItems)
                 {
@@ -424,6 +424,11 @@ namespace BetterDataGrid
                         filterList.Remove(thisColumnFilter);
                 }
             }
+            else if(e.Action == NotifyCollectionChangedAction.Reset)
+            {
+                GenerateFilterList();
+            }
+            // NotifyCollectionChangedAction.Move => not occur
         }
         private void NotifyPropertyChanged(string property)
         {

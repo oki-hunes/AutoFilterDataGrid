@@ -539,7 +539,9 @@ namespace BetterDataGrid
                                            select new FilterValue(thisFilter.PropertyName, thisFilter.FilteredValues)).ToList();
             Popup filterPopup = (Popup)sender;
             ListBox popupContent = (ListBox)filterPopup.FindName("FilterList");
-            int columnIndex = ((DataGridColumnHeader)filterPopup.TemplatedParent).DisplayIndex;
+            DataGridColumnHeader columnHeader = (DataGridColumnHeader)filterPopup.TemplatedParent;
+            // filterPopup is Popuped => ItemsSource changed => TemplateParent is null => FilterPopup_Closed is called
+            if( columnHeader == null )  return;
             FilterValue thisColumnFilter = filterList.Find((thisFilter) =>
             {
                 Binding columnBinding = GetColumnBinding(((DataGridColumn)this.Columns[columnIndex]));
